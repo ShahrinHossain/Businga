@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'top_up_page.dart';  // Import TopUpPage
 
 class RouteSelectionPage extends StatefulWidget {
   @override
@@ -122,9 +123,12 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
     return Scaffold(
       backgroundColor: Colors.white, // Set the background to white
       appBar: AppBar(
-        title: Text('Route Selection'),
+        title: Text(
+          'Route Selection',
+          style: TextStyle(color: Colors.white), // Set the text color to white
+        ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.of(context).pop(); // Go back to the previous page
           },
@@ -225,8 +229,10 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
           ),
         ),
         onPressed: () {
-          // Handle route selection
-          _selectRoute(route);
+          // Navigate to TopUpPage when a route is selected
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (context) => TopUpPage()),
+          );
         },
         child: Text(
           route,
@@ -234,20 +240,5 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
         ),
       ),
     );
-  }
-
-  // Handle Route Selection
-  void _selectRoute(String route) {
-    if (route.contains('R2')) {
-      _mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(24.0010, 90.4100), 14.0),
-      );
-      // Optionally, update markers or polylines for R2
-    } else if (route.contains('R7')) {
-      _mapController.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(23.8103, 90.4125), 14.0),
-      );
-      // Optionally, update markers or polylines for R7
-    }
   }
 }

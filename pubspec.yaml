@@ -34,6 +34,7 @@ dependencies:
   permission_handler: ^11.2.0 # Check for the latest version
   qr_code_scanner: ^1.0.0
   url_launcher: ^6.1.7
+  font_awesome_flutter: ^10.7.0
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -67,6 +68,7 @@ flutter:
      - assets/bus.png
      - assets/maps.png
      - assets/background.png
+     - assets/siam.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
