@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from .serializers import UserSerializer
 from django.contrib.auth.models import User
-
+from django.views.decorators.csrf import csrf_exempt
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -32,6 +32,7 @@ class LoginView(APIView):
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 class LogoutView(APIView):
+    @csrf_exempt
     def post(self, request):
         logout(request)
-        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+        return Response({"message": "Logout successful"}, status=200)
