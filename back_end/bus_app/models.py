@@ -86,22 +86,8 @@ class Bus(models.Model):
     def __str__(self):
         return self.registration_no
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+class BkashPayload(models.Model):
+    payload = models.TextField()
 
 
 
