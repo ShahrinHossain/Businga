@@ -21,6 +21,7 @@ class RegisterView(APIView):
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
@@ -31,8 +32,16 @@ class LoginView(APIView):
             return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LogoutView(APIView):
-    @csrf_exempt
-    def post(self, request):
+    # @csrf_exempt
+    def get(self, request):
         logout(request)
         return Response({"message": "Logout successful"}, status=200)
+
+
+class CurrentUserView(APIView):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return Response({"username": request.user.username}, status=status.HTTP_200_OK)
+        return Response({"username": None}, status=status.HTTP_200_OK)

@@ -1,3 +1,4 @@
+import 'package:businga1/globalVariables.dart';
 import 'package:flutter/material.dart';
 
 class PaymentPage extends StatefulWidget {
@@ -22,7 +23,7 @@ class _PaymentPageState extends State<PaymentPage> {
       appBar: AppBar(
         backgroundColor: Colors.teal[800],
         elevation: 0,
-        title: Text(
+        title: const Text(
           'Top Up',
           style: TextStyle(
             color: Colors.white,
@@ -36,7 +37,7 @@ class _PaymentPageState extends State<PaymentPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               'Choose a Payment Method',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
@@ -45,7 +46,7 @@ class _PaymentPageState extends State<PaymentPage> {
             _buildPaymentOption('via Card', Icons.credit_card),
             _buildPaymentOption('via Nagad', Icons.phone_android),
             SizedBox(height: 30),
-            Text(
+            const Text(
               'Enter Amount',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
