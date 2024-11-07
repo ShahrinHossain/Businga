@@ -14,6 +14,7 @@ from .serializers import UserSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 class RegisterView(APIView):
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
@@ -23,6 +24,8 @@ class RegisterView(APIView):
 
 
 class LoginView(APIView):
+
+    # @csrf_exempt
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
@@ -34,6 +37,7 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+
     # @csrf_exempt
     def get(self, request):
         logout(request)
