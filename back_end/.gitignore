@@ -1,0 +1,34 @@
+# Byte-compiled files
+__pycache__/
+*.py[cod]
+
+# Environment variables file
+.env
+
+# Django and Python-related
+db.sqlite3
+*.log
+*.pot
+*.pyc
+
+# Virtual environment
+venv/
+env/
+
+# IDE or editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Build files
+build/
+dist/
+*.egg-info/
+
+# OS-specific files
+.DS_Store    # macOS
+Thumbs.db    # Windows
+
+# Dependency directories
+node_modules/
