@@ -125,7 +125,10 @@ class _RouteSelectionPageState extends State<RouteSelectionPage> {
       appBar: AppBar(
         title: Text(
           'Route Selection',
-          style: TextStyle(color: Colors.white), // Set the text color to white
+          style: TextStyle(
+            color: Colors.white, // Set the text color to white
+            fontWeight: FontWeight.bold, // Make the text bold
+          ),
         ),
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white),

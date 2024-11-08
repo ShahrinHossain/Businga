@@ -9,14 +9,19 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Color(0xFF006B5F), // Deep sea green background color
+        iconTheme: IconThemeData(color: Colors.white), // White arrow icon color
         title: const Text(
           'Settings',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black),
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white, // White text color for the title
+          ),
         ),
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // White back arrow icon
           onPressed: () {
             Navigator.of(context).pop(); // Go back to the previous page
           },
@@ -28,7 +33,7 @@ class SettingsPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildSettingsSection(context, 'Account', [
-              _buildSettingsOption(context, Icons.person, 'Edit profile', EditProfilePage()),  // Navigate to EditProfilePage
+              _buildSettingsOption(context, Icons.person, 'Edit profile', EditProfilePage()),
               _buildSettingsOption(context, Icons.security, 'Security', null),
               _buildSettingsOption(context, Icons.notifications, 'Notifications', null),
               _buildSettingsOption(context, Icons.privacy_tip, 'Privacy', null),
@@ -58,7 +63,7 @@ class SettingsPage extends StatelessWidget {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
         ),
         const SizedBox(height: 10),
-        ...options,  // Display all options under the section
+        ...options, // Display all options under the section
         const SizedBox(height: 20),
       ],
     );
@@ -70,7 +75,7 @@ class SettingsPage extends StatelessWidget {
       onTap: page != null
           ? () {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => page),  // Navigate to the provided page
+          MaterialPageRoute(builder: (context) => page), // Navigate to the provided page
         );
       }
           : null, // No action if no page provided

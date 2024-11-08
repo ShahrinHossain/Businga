@@ -5,7 +5,8 @@ class NavigationPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Color(0xFF006B5F),
+        iconTheme: IconThemeData(color: Colors.white), // Sets the back arrow color to white
         title: Text(
           'Take a Tour',
           style: TextStyle(
@@ -71,7 +72,7 @@ class NavigationPage extends StatelessWidget {
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: Colors.blueAccent,
+          color: Color(0xFF006B5F),
         ),
       ),
     );

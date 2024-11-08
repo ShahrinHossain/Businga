@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For parsing JSON responses
-import 'components/my_button.dart';
-import 'components/my_textfield.dart';
-import 'components/square_tile.dart';
+import 'dart:convert';
 import 'home_screen.dart';
 import 'globalVariables.dart';
 
 var baseUrl = getIp();
+const deepSeaGreen = Color(0xFF00756A);
 
 class RegisterPage extends StatefulWidget {
   final Function()? onTap;
@@ -18,32 +16,27 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // text editing controllers
   final emailController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  // sign user up method
   void signUserUp() async {
-    // Show loading dialog
     showDialog(
       context: context,
       builder: (context) {
         return const Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator(color: deepSeaGreen),
         );
       },
     );
 
-    // Check if passwords match
     if (passwordController.text != confirmPasswordController.text) {
       Navigator.pop(context);
       wrongPasswordMessage("Passwords don't match");
       return;
     }
 
-    // Prepare data for registration
     final Map<String, String> registrationData = {
       'email': emailController.text,
       'username': usernameController.text,
@@ -51,19 +44,17 @@ class _RegisterPageState extends State<RegisterPage> {
     };
 
     try {
-      // Send POST request to Django backend
       final response = await http.post(
-        Uri.parse('$baseUrl/users/register/'), // Dynamically use baseUrl
+        Uri.parse('$baseUrl/users/register/'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode(registrationData),
       );
 
-      // Check response
       if (response.statusCode == 201) {
         Navigator.pop(context);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()), // Navigate to home after successful registration
+          MaterialPageRoute(builder: (context) => HomeScreen()),
         );
       } else {
         Navigator.pop(context);
@@ -81,7 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: deepSeaGreen,
           title: Text(
             message,
             style: const TextStyle(color: Colors.white),
@@ -103,15 +94,6 @@ class _RegisterPageState extends State<RegisterPage> {
               children: [
                 const SizedBox(height: 50),
 
-                // Logo
-                const Icon(
-                  Icons.lock,
-                  size: 100,
-                ),
-
-                const SizedBox(height: 50),
-
-                // Welcome text
                 Text(
                   'Let\'s create an account for you!',
                   style: TextStyle(
@@ -122,51 +104,94 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 25),
 
-                // Email textfield
-                MyTextField(
-                  controller: emailController,
-                  hintText: 'Email',
-                  obscureText: false,
+                // Email TextField
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      hintText: 'Email',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
 
-                // Username textfield
-                MyTextField(
-                  controller: usernameController,
-                  hintText: 'Username',
-                  obscureText: false,
+                // Username TextField
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: TextField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(
+                      hintText: 'Username',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
 
-                // Password textfield
-                MyTextField(
-                  controller: passwordController,
-                  hintText: 'Password',
-                  obscureText: true,
+                // Password TextField
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Password',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
 
-                // Confirm Password textfield
-                MyTextField(
-                  controller: confirmPasswordController,
-                  hintText: 'Confirm Password',
-                  obscureText: true,
+                // Confirm Password TextField
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: TextField(
+                    controller: confirmPasswordController,
+                    obscureText: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Confirm Password',
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 25),
 
-                // Sign up button
-                MyButton(
-                  text: "Sign Up",
-                  onTap: signUserUp,
+                // Sign Up Button
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: deepSeaGreen,
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    onPressed: signUserUp,
+                    child: const Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 50),
 
-                // Or continue with
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
@@ -196,26 +221,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 50),
 
-                // Google + Apple sign in buttons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Google button
-                    SquareTile(
-                        onTap: () {}, // You can add the Google sign-in logic here
-                        imagePath: 'lib/images/google.png'
-                    ),
-
-                    const SizedBox(width: 25),
-
-                    // Apple button (if you want to add later)
-                    //const SquareTile(imagePath: 'lib/images/apple.png')
-                  ],
-                ),
-
-                const SizedBox(height: 50),
-
-                // Already have an account?
+                // Already have an account? Login option
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -225,7 +231,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: widget.onTap, // Navigate to login page
+                      onTap: widget.onTap,
                       child: const Text(
                         'Login Now',
                         style: TextStyle(
@@ -233,9 +239,9 @@ class _RegisterPageState extends State<RegisterPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    )
+                    ),
                   ],
-                )
+                ),
               ],
             ),
           ),

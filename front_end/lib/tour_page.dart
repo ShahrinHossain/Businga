@@ -5,7 +5,7 @@ class TourPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.greenAccent[400],
+        backgroundColor: Colors.white,
         elevation: 0,
         title: Text(
           'Businga',
@@ -27,7 +27,7 @@ class TourPage extends StatelessWidget {
               decoration: InputDecoration(
                 hintText: 'Vehicle no',
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Colors.grey.shade100,
                 contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
@@ -41,21 +41,21 @@ class TourPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildFeatureButton(context, 'All Vehicles', Icons.directions_bus, Colors.teal),
-                _buildFeatureButton(context, 'Add A Vehicle', Icons.add, Colors.teal),
+                _buildFeatureButton(context, 'All Vehicles', Icons.directions_bus, Color(0xFF006B5F)),
+                _buildFeatureButton(context, 'Add A Vehicle', Icons.add, Color(0xFF006B5F)),
               ],
             ),
             SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildFeatureButton(context, 'Driver Info', Icons.person, Colors.teal),
-                _buildFeatureButton(context, 'Withdraw Money', Icons.account_balance_wallet, Colors.teal),
+                _buildFeatureButton(context, 'Driver Info', Icons.person, Color(0xFF006B5F)),
+                _buildFeatureButton(context, 'Withdraw Money', Icons.account_balance_wallet, Color(0xFF006B5F)),
               ],
             ),
             SizedBox(height: 20),
             // Balance Info
-            _buildInfoCard('Balance', 'BDT 17,543', Colors.teal),
+            _buildInfoCard('Balance', 'BDT 17,543', Color(0xFF006B5F)),
             SizedBox(height: 20),
             // Customer Reviews
             _buildReviewsCard(),
@@ -79,7 +79,7 @@ class TourPage extends StatelessWidget {
             label: 'Account',
           ),
         ],
-        selectedItemColor: Colors.blueAccent,
+        selectedItemColor: Color(0xFF006B5F),
         unselectedItemColor: Colors.grey,
       ),
     );
@@ -154,7 +154,7 @@ class TourPage extends StatelessWidget {
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        color: Colors.teal,
+        color: Color(0xFF006B5F),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,7 +179,7 @@ class TourPage extends StatelessWidget {
                 ),
                 child: Text(
                   'See All',
-                  style: TextStyle(color: Colors.teal),
+                  style: TextStyle(color: Color(0xFF006B5F)),
                 ),
               ),
               Row(

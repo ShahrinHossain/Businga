@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For parsing JSON responses
-import 'components/my_button.dart';
-import 'components/my_textfield.dart';
-import 'components/square_tile.dart';
 import 'home_screen.dart';
 import 'globalVariables.dart';
 
@@ -92,10 +89,13 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 50),
 
                 // Logo
+                // Logo
                 const Icon(
                   Icons.lock,
                   size: 100,
+                  color: Color(0xFF006B5F), // Deep Sea Green color
                 ),
+
 
                 const SizedBox(height: 50),
 
@@ -111,19 +111,40 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 25),
 
                 // Username textfield
-                MyTextField(
-                  controller: emailController,
-                  hintText: 'Username',
-                  obscureText: false,
+                Container(
+                  width: 300, // Reduce width of the field
+                  child: TextField(
+                    controller: emailController,
+                    decoration: InputDecoration(
+                      hintText: 'Username',
+                      filled: true,
+                      fillColor: Colors.teal.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
 
                 // Password textfield
-                MyTextField(
-                  controller: passwordController,
-                  hintText: 'Password',
-                  obscureText: true,
+                Container(
+                  width: 300, // Reduce width of the field
+                  child: TextField(
+                    controller: passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      hintText: 'Password',
+                      filled: true,
+                      fillColor: Colors.teal.shade100,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 10),
@@ -145,9 +166,22 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 25),
 
                 // Sign in button
-                MyButton(
-                  text: "Sign In",
+                GestureDetector(
                   onTap: signUserIn,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    margin: EdgeInsets.symmetric(horizontal: 25),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade700,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Sign In",
+                        style: TextStyle(color: Colors.white, fontSize: 16),
+                      ),
+                    ),
+                  ),
                 ),
 
                 const SizedBox(height: 50),
@@ -187,15 +221,24 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Google button
-                    SquareTile(
-                        onTap: () {}, // You can add the Google sign-in logic here
-                        imagePath: 'lib/images/google.png'
+                    GestureDetector(
+                      onTap: () {}, // You can add the Google sign-in logic here
+                      child: Container(
+                        padding: EdgeInsets.all(10),
+                        child: Image.asset('lib/images/google.png', width: 50),
+                      ),
                     ),
 
                     const SizedBox(width: 25),
 
                     // Apple button (if you want to add later)
-                    //const SquareTile(imagePath: 'lib/images/apple.png')
+                    // GestureDetector(
+                    //   onTap: () {},
+                    //   child: Container(
+                    //     padding: EdgeInsets.all(10),
+                    //     child: Image.asset('lib/images/apple.png', width: 50),
+                    //   ),
+                    // ),
                   ],
                 ),
 
@@ -215,7 +258,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: const Text(
                         'Register now',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: Color(0xFF006B5F), // Deep Sea Green
                           fontWeight: FontWeight.bold,
                         ),
                       ),
