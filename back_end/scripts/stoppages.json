@@ -1,0 +1,134 @@
+[
+    {
+        "name": "Azimpur",
+        "latitude": 23.7278,
+        "longitude": 90.3845,
+        "queue_length": 0
+    },
+    {
+        "name": "Nilkhet",
+        "latitude": 23.7330,
+        "longitude": 90.3928,
+        "queue_length": 0
+    },
+    {
+        "name": "New Market",
+        "latitude": 23.7361,
+        "longitude": 90.3842,
+        "queue_length": 0
+    },
+    {
+        "name": "City College",
+        "latitude": 23.7389,
+        "longitude": 90.3815,
+        "queue_length": 0
+    },
+    {
+        "name": "Kalabagan",
+        "latitude": 23.7415,
+        "longitude": 90.3773,
+        "queue_length": 0
+    },
+    {
+        "name": "Banani",
+        "latitude": 23.7936,
+        "longitude": 90.4043,
+        "queue_length": 0
+    },
+    {
+        "name": "Kakali",
+        "latitude": 23.7980,
+        "longitude": 90.4130,
+        "queue_length": 0
+    },
+    {
+        "name": "MES",
+        "latitude": 23.8121,
+        "longitude": 90.4225,
+        "queue_length": 0
+    },
+    {
+        "name": "Shewra",
+        "latitude": 23.8186,
+        "longitude": 90.4265,
+        "queue_length": 0
+    },
+    {
+        "name": "Kuril Bishwa Road",
+        "latitude": 23.8281,
+        "longitude": 90.4265,
+        "queue_length": 0
+    },
+    {
+        "name": "Khilkhet",
+        "latitude": 23.8315,
+        "longitude": 90.4225,
+        "queue_length": 0
+    },
+    {
+        "name": "Airport",
+        "latitude": 23.8493,
+        "longitude": 90.4005,
+        "queue_length": 0
+    },
+    {
+        "name": "Jashimuddin (Uttara)",
+        "latitude": 23.8584,
+        "longitude": 90.3984,
+        "queue_length": 0
+    },
+    {
+        "name": "Rajlakshmi",
+        "latitude": 23.8650,
+        "longitude": 90.3960,
+        "queue_length": 0
+    },
+    {
+        "name": "Azampur",
+        "latitude": 23.8700,
+        "longitude": 90.3940,
+        "queue_length": 0
+    },
+    {
+        "name": "House Building",
+        "latitude": 23.8735,
+        "longitude": 90.3925,
+        "queue_length": 0
+    },
+    {
+        "name": "Abdullahpur",
+        "latitude": 23.8815,
+        "longitude": 90.3880,
+        "queue_length": 0
+    },
+    {
+        "name": "Tongi",
+        "latitude": 23.8915,
+        "longitude": 90.4020,
+        "queue_length": 0
+    },
+    {
+        "name": "Station Road",
+        "latitude": 23.8990,
+        "longitude": 90.4080,
+        "queue_length": 0
+    },
+    {
+        "name": "Mill Gate",
+        "latitude": 23.9050,
+        "longitude": 90.4120,
+        "queue_length": 0
+    },
+    {
+        "name": "Board Bazar",
+        "latitude": 23.9200,
+        "longitude": 90.4200,
+        "queue_length": 0
+    },
+    {
+        "name": "Gazipur Chourasta",
+        "latitude": 23.9990,
+        "longitude": 90.4200,
+        "queue_length": 0
+    }
+]

@@ -1,5 +1,8 @@
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+
+from .models import Profile
+
 
 # Create your views here.
 
@@ -10,7 +13,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .serializers import UserSerializer, UserInfoSerializer
+from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 class RegisterView(APIView):
@@ -66,3 +69,38 @@ class CurrentUserInfoView(APIView):
             serializer = UserInfoSerializer(request.user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class AdjustBalanceView(APIView):
+    def post(self, request):
+        serializer = BalanceAdjustmentSerializer(data=request.data)
+
+        if serializer.is_valid():
+            user_id = serializer.validated_data['id']
+            amount = serializer.validated_data['amount']
+
+            profile = get_object_or_404(Profile, user__id=user_id)
+
+            if amount < 0 and profile.balance + amount < 0:
+                return Response({"error": "Insufficient balance"}, status=status.HTTP_400_BAD_REQUEST)
+
+            profile.balance += amount
+            profile.save()
+
+            return Response({
+                "message": "Balance updated successfully",
+                "balance": profile.balance
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class StoppageCreateView(APIView):
+    def post(self, request):
+        serializer = StoppageSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Stoppage created successfully"}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

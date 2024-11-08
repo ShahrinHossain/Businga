@@ -1,5 +1,8 @@
 from django.urls import path
-from .views import RegisterView, LoginView, LogoutView, CurrentUserView, example_view, CurrentUserInfoView
+
+from .serializers import BalanceAdjustmentSerializer
+from .views import RegisterView, LoginView, LogoutView, CurrentUserView, example_view, CurrentUserInfoView, \
+    AdjustBalanceView, StoppageCreateView
 from . import views
 
 urlpatterns = [
@@ -9,4 +12,6 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('current/', CurrentUserInfoView.as_view(), name='current'),
     path('example/', example_view, name='example-view'),
+    path('update-balance/', AdjustBalanceView.as_view(), name='update-balance'),
+    path('add-stoppage/', StoppageCreateView.as_view(), name='add-stoppage'),
 ]

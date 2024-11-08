@@ -61,10 +61,10 @@ class Route(models.Model):
         return f"Route {self.id}"
 
 class Stoppage(models.Model):
-    vehicle_id = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
-    location = models.CharField(max_length=100)
-    queue_length = models.IntegerField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, default=0.0)  # Set default value
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, default=0.0)  # Set default value
+    queue_length = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name

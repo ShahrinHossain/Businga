@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
+from bus_app.models import Stoppage
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -39,3 +41,13 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 "balance": obj.profile.balance,
             }
         return None
+
+
+class BalanceAdjustmentSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+class StoppageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stoppage
+        fields = ['name', 'latitude', 'longitude', 'queue_length']
