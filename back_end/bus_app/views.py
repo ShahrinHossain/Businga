@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .serializers import UserSerializer
+from .serializers import UserSerializer, UserInfoSerializer
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 class RegisterView(APIView):
@@ -59,3 +59,10 @@ def example_view(request):
     elif request.method == 'POST':
         received_data = request.data
         return Response({"received_data": received_data}, status=status.HTTP_201_CREATED)
+
+class CurrentUserInfoView(APIView):
+    def get(self, request):
+        if request.user.is_authenticated:
+            serializer = UserInfoSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
