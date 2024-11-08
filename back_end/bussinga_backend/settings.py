@@ -59,6 +59,28 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+# settings.py in Django
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:8000",
+#     "http://127.0.0.1:8000",
+#     "http://your-local-ip:8000",  # if accessing by local IP
+# ]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'authorization',
+]
+
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    # 'OPTIONS',
+    'DELETE',
+    'PUT',
+]
+
+
 
 ROOT_URLCONF = 'bussinga_backend.urls'
 

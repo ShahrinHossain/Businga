@@ -3,8 +3,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert'; // For parsing JSON responses
 import 'components/my_button.dart';
 import 'components/my_textfield.dart';
-import 'components/square_tile.dart'; // Can be removed if not used anywhere else
+import 'components/square_tile.dart';
 import 'home_screen.dart';
+import 'globalVariables.dart';
+
+var baseUrl = getIp();
 
 class RegisterPage extends StatefulWidget {
   final Function()? onTap;
@@ -17,17 +20,21 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   // text editing controllers
   final emailController = TextEditingController();
+  final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
   // sign user up method
   void signUserUp() async {
     // Show loading dialog
-    showDialog(context: context, builder: (context) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
 
     // Check if passwords match
     if (passwordController.text != confirmPasswordController.text) {
@@ -38,14 +45,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
     // Prepare data for registration
     final Map<String, String> registrationData = {
-      'username': emailController.text,
+      'email': emailController.text,
+      'username': usernameController.text,
       'password': passwordController.text,
     };
 
     try {
       // Send POST request to Django backend
       final response = await http.post(
-        Uri.parse('http://0.0.0.0:8000/register/'), // Your Django API endpoint
+        Uri.parse('$baseUrl/users/register/'), // Dynamically use baseUrl
         headers: {'Content-Type': 'application/json'},
         body: json.encode(registrationData),
       );
@@ -53,7 +61,10 @@ class _RegisterPageState extends State<RegisterPage> {
       // Check response
       if (response.statusCode == 201) {
         Navigator.pop(context);
-        Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HomeScreen())); // Navigate to home after successful registration
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()), // Navigate to home after successful registration
+        );
       } else {
         Navigator.pop(context);
         final error = json.decode(response.body)['error'];
@@ -66,15 +77,18 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void wrongPasswordMessage(String message) {
-    showDialog(context: context, builder: (context) {
-      return AlertDialog(
-        backgroundColor: Colors.deepPurple,
-        title: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
-      );
-    });
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.deepPurple,
+          title: Text(
+            message,
+            style: const TextStyle(color: Colors.white),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -89,7 +103,7 @@ class _RegisterPageState extends State<RegisterPage> {
               children: [
                 const SizedBox(height: 50),
 
-                // logo
+                // Logo
                 const Icon(
                   Icons.lock,
                   size: 100,
@@ -97,7 +111,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 50),
 
-                // welcome text
+                // Welcome text
                 Text(
                   'Let\'s create an account for you!',
                   style: TextStyle(
@@ -108,16 +122,25 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 25),
 
-                // email textfield
+                // Email textfield
                 MyTextField(
                   controller: emailController,
+                  hintText: 'Email',
+                  obscureText: false,
+                ),
+
+                const SizedBox(height: 10),
+
+                // Username textfield
+                MyTextField(
+                  controller: usernameController,
                   hintText: 'Username',
                   obscureText: false,
                 ),
 
                 const SizedBox(height: 10),
 
-                // password textfield
+                // Password textfield
                 MyTextField(
                   controller: passwordController,
                   hintText: 'Password',
@@ -126,7 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 10),
 
-                // confirm password textfield
+                // Confirm Password textfield
                 MyTextField(
                   controller: confirmPasswordController,
                   hintText: 'Confirm Password',
@@ -135,7 +158,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 25),
 
-                // sign up button
+                // Sign up button
                 MyButton(
                   text: "Sign Up",
                   onTap: signUserUp,
@@ -143,7 +166,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 50),
 
-                // or continue with
+                // Or continue with
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Row(
@@ -173,11 +196,26 @@ class _RegisterPageState extends State<RegisterPage> {
 
                 const SizedBox(height: 50),
 
-                // Removed the Google sign-in button part
+                // Google + Apple sign in buttons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Google button
+                    SquareTile(
+                        onTap: () {}, // You can add the Google sign-in logic here
+                        imagePath: 'lib/images/google.png'
+                    ),
+
+                    const SizedBox(width: 25),
+
+                    // Apple button (if you want to add later)
+                    //const SquareTile(imagePath: 'lib/images/apple.png')
+                  ],
+                ),
 
                 const SizedBox(height: 50),
 
-                // already have an account
+                // Already have an account?
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -187,7 +225,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: widget.onTap,
+                      onTap: widget.onTap, // Navigate to login page
                       child: const Text(
                         'Login Now',
                         style: TextStyle(

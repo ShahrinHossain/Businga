@@ -8,7 +8,7 @@ class GlobalVariables {
   // Your global variables
   String globalString = "Hello, World!";
   int globalCounter = 0;
-  String ipAddress = '192.168.0.1';
+  String ipAddress = 'http://localhost:8000';
 }
 
 // Access anywhere in your project
@@ -17,3 +17,6 @@ void someFunction() {
   GlobalVariables.instance.globalCounter++;
 }
 
+String getIp(){
+  return GlobalVariables.instance.ipAddress;
+}

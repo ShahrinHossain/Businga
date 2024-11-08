@@ -26,6 +26,8 @@ class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
+        print(username)
+        print(password)
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -45,3 +47,15 @@ class CurrentUserView(APIView):
         if request.user.is_authenticated:
             return Response({"username": request.user.username}, status=status.HTTP_200_OK)
         return Response({"username": None}, status=status.HTTP_200_OK)
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+@api_view(['GET', 'POST'])
+def example_view(request):
+    if request.method == 'GET':
+        data = {"message": "Hello from Django"}
+        return Response(data, status=status.HTTP_200_OK)
+    elif request.method == 'POST':
+        received_data = request.data
+        return Response({"received_data": received_data}, status=status.HTTP_201_CREATED)

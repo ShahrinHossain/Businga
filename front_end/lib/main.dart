@@ -26,8 +26,17 @@ import 'auth_page.dart';
 // import 'firebase_options.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
+import 'services/apiTest.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final apiService = ApiService();
+
+  // Fetch data
+  // await apiService.fetchMessage();
+
+  // Send data
+  // await apiService.sendData({'name': 'Django', 'message': 'Hello, Flutter!'});
   runApp(const MyApp());
   runApp(const MyApp());
 }
