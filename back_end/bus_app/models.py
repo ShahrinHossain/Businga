@@ -1,5 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Max
+from sqlalchemy import false
+
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -33,18 +36,27 @@ class CashFlow(models.Model):
     def __str__(self):
         return f"{self.type} - {self.amount}"
 
+
 class Trip(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     bus = models.ForeignKey('Bus', on_delete=models.CASCADE)
-    from_id = models.CharField(max_length=100)
-    to_id = models.CharField(max_length=100)
-    trip_no = models.CharField(max_length=100)
+    from_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='trip_from_stoppage')
+    to_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='trip_to_stoppage')
+    distance = models.FloatField()  # Distance in kilometers
     route_id = models.ForeignKey('Route', on_delete=models.CASCADE)
     arrival_time = models.TimeField()
-    depart_time = models.TimeField()
+    trip_no = models.PositiveIntegerField(unique=True, editable=False)  # Auto-generated
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.trip_no:
+            last_trip_no = Trip.objects.aggregate(Max('trip_no'))['trip_no__max'] or 0
+            self.trip_no = last_trip_no + 1
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Trip {self.trip_no} from {self.from_id} to {self.to_id}"
+        return f"Trip {self.trip_no} for user {self.user.username}"
+
 
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -98,3 +110,21 @@ class Bus(models.Model):
 
     def __str__(self):
         return self.registration_no
+
+
+class OngoingTrip(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    bus = models.ForeignKey('Bus', on_delete=models.CASCADE)
+    from_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='from_stoppage')
+    trip_no = models.PositiveIntegerField(editable=False)  # Auto-generated
+    route_id = models.ForeignKey('Route', on_delete=models.CASCADE)
+    arrival_time = models.TimeField()
+
+    def __str__(self):
+        return f"Ongoing Trip {self.trip_no} for user {self.user.username}"
+
+    def save(self, *args, **kwargs):
+        if not self.trip_no:  # Auto-generate trip_no if not set
+            last_trip_no = OngoingTrip.objects.aggregate(Max('trip_no'))['trip_no__max'] or 0
+            self.trip_no = last_trip_no + 1
+        super().save(*args, **kwargs)
