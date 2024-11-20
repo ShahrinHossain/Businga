@@ -9,6 +9,12 @@ import 'account_page.dart';
 import 'settings.dart';
 import 'payment_page.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'globalVariables.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Add this import
+
+var baseUrl = getIp(); // Dynamically fetch the base URL
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -17,6 +23,86 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  String? _balance; // Stores the fetched balance
+  bool _isLoading = true; // Tracks if the balance is being loaded
+
+  // Create a secure storage instance
+  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+
+  // Function to get the stored token
+  Future<String?> getAuthToken() async {
+    return await secureStorage.read(key: 'auth_token');
+  }
+
+  // Function to fetch user data using the token
+  Future<void> getUserData() async {
+    String? token = await getAuthToken();
+
+    if (token == null) {
+      // Handle the case where the token is not available
+      print('User is not logged in');
+      return;
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/current/'),
+        headers: {
+          'Authorization': 'Bearer $token', // Add token in Authorization header
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Handle success
+        final userData = json.decode(response.body);
+        print(userData);
+      } else {
+        // Handle failure (e.g., unauthorized)
+        print('Failed to fetch user data: ${response.body}');
+      }
+    } catch (e) {
+      print('An error occurred: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBalance(); // Fetch balance when screen loads
+    getUserData(); // Fetch user data when screen loads
+  }
+
+  // Function to fetch the balance from the API
+  Future<void> _fetchBalance() async {
+    final url = Uri.parse('$baseUrl/users/current/'); // API endpoint for user info
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _balance = data['balance']?.toString() ?? 'N/A'; // Extract balance from the API response
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _balance = '100.00';
+          _isLoading = false;
+        });
+      }
+    } catch (error) {
+      setState(() {
+        _balance = '100.00';
+        _isLoading = false;
+      });
+    }
+  }
 
   // Method to handle bottom navigation taps
   void _onItemTapped(int index) {
@@ -41,31 +127,27 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: false,  // This keeps the layout fixed when the keyboard appears
-      // Import to use SystemNavigator
-
-    appBar: AppBar(
-    backgroundColor: Colors.transparent,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      toolbarHeight: 60, // Adjust height of AppBar if necessary
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.teal[800]), // Go Back Icon
-        onPressed: () {
-          SystemNavigator.pop();  // Exits the app
-        },
-      ),
-      title: Text(
-        'Businga',  // App Name at the top
-        style: TextStyle(
-          fontSize: 35,
-          fontWeight: FontWeight.bold,
-          color: Colors.teal[800], // Deep sea green
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 60, // Adjust height of AppBar if necessary
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.teal[800]), // Go Back Icon
+          onPressed: () {
+            SystemNavigator.pop();  // Exits the app
+          },
+        ),
+        title: Text(
+          'Businga',  // App Name at the top
+          style: TextStyle(
+            fontSize: 35,
+            fontWeight: FontWeight.bold,
+            color: Colors.teal[800], // Deep sea green
+          ),
         ),
       ),
-    ),
-
-
-    body: Stack(
+      body: Stack(
         children: [
           // Circle at the bottom
           Positioned(
@@ -122,20 +204,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage()),
                           _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, PaymentPage()),
-
                         ],
                       ),
                       SizedBox(height: 20),
-                      // Balance Info
-                      _buildInfoCard('Balance', 'BDT 345.50', Colors.greenAccent),
+                      // Balance Info - Dynamic content here
+                      _buildInfoCard('Balance', _isLoading ? 'Loading...' : (_balance ?? '100.00'), Colors.greenAccent),
                       SizedBox(height: 20),
                       // Location Info
                       _buildInfoCard('Location', 'K B Bazar Road, Gazipur', Colors.greenAccent),
                       SizedBox(height: 20),
-                      // Tour Section
-                      // Tour Section
-                      // Tour Section
-                      // Tour Section
                       // Tour Section
                       Container(
                         width: double.infinity,
@@ -192,7 +269,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-
                     ],
                   ),
                 ),
@@ -205,93 +281,77 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped, // Handle tap
+        onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.directions_bus),
-            label: 'Activities',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Stops',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.account_circle),
             label: 'Account',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Location',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Settings',
+          ),
         ],
-        selectedItemColor: Colors.blueGrey[500],
-        unselectedItemColor: Colors.grey,
       ),
     );
   }
 
-  // Widget to build feature card (Routes, Top-up)
+  // Function to build feature cards like Routes and Top-up
   Widget _buildFeatureCard(BuildContext context, String title, IconData icon, Color color, Widget nextPage) {
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) => nextPage),
-          );
-        },
-        child: Container(
-          height: 100,
-          margin: EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(15),
-            color: color,
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 30, color: Colors.black),
-                SizedBox(height: 10),
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => nextPage));
+      },
+      child: Card(
+        color: color,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: SizedBox(
+          width: 150,
+          height: 150,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 40, color: Colors.white),
+              SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(fontSize: 16, color: Colors.white),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  // Widget to build information card (Balance, Location)
-  Widget _buildInfoCard(String label, String value, Color color) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15),
-        color: color,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(color: Colors.black54),
-          ),
-          SizedBox(height: 10),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+  // Function to build balance and location info cards
+  Widget _buildInfoCard(String title, String content, Color color) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: color,
+      child: Padding(
+        padding: EdgeInsets.all(15),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
             ),
-          ),
-        ],
+            Text(
+              content,
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }

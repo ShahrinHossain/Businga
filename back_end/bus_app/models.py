@@ -45,6 +45,7 @@ class Trip(models.Model):
 
     def __str__(self):
         return f"Trip {self.trip_no} from {self.from_id} to {self.to_id}"
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     trip = models.ForeignKey(Trip, on_delete=models.CASCADE)
