@@ -1,7 +1,10 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
 from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from bus_app.models import Stoppage
+from bus_app.models import Stoppage, Profile, OngoingTrip
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -51,3 +54,15 @@ class StoppageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stoppage
         fields = ['name', 'latitude', 'longitude', 'queue_length']
+
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['name', 'contact', 'role', 'balance']
+
+class OngoingTripSerializer(serializers.ModelSerializer):
+    trip_no = serializers.ReadOnlyField()  # Auto-generated field
+
+    class Meta:
+        model = OngoingTrip
+        fields = ['user', 'bus', 'from_id', 'trip_no', 'route_id', 'arrival_time']
