@@ -67,6 +67,8 @@ CORS_ALLOW_CREDENTIALS = True
 #     "http://your-local-ip:8000",  # if accessing by local IP
 # ]
 
+GOOGLE_MAPS_API_KEY = 'AIzaSyADYLQhdhTVUl8e7XM1eYTSUSF9pkdYOB8'
+
 CORS_ALLOW_HEADERS = [
     'content-type',
     'authorization',

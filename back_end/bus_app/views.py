@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 import geopy
-from .models import Profile, Stoppage, OngoingTrip
+from .models import Profile, Stoppage, OngoingTrip, Trip
 
 
 # Create your views here.
