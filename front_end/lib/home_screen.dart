@@ -12,7 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'globalVariables.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Add this import
+//import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Add this import
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
 
@@ -27,11 +27,11 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true; // Tracks if the balance is being loaded
 
   // Create a secure storage instance
-  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
+//  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
 
   // Function to get the stored token
   Future<String?> getAuthToken() async {
-    return await secureStorage.read(key: 'auth_token');
+    //return await secureStorage.read(key: 'auth_token');
   }
 
   // Function to fetch user data using the token

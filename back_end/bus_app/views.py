@@ -202,12 +202,12 @@ class FinishTripView(APIView):
         except OngoingTrip.DoesNotExist:
             return Response({"error": "No ongoing trip found for the user."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Get `from_id` stoppage details
+
         from_stoppage = ongoing_trip.from_id
         from_coordinates = (from_stoppage.latitude, from_stoppage.longitude)
         to_coordinates = (latitude, longitude)
 
-        # Make a request to Google Maps Directions API to calculate road distance
+
         google_maps_api_key = settings.GOOGLE_MAPS_API_KEY
         google_maps_url = "https://maps.googleapis.com/maps/api/directions/json"
         params = {
@@ -226,10 +226,10 @@ class FinishTripView(APIView):
         if directions_data["status"] != "OK":
             return Response({"error": "No route found for the specified locations."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Get the road distance from the response
-        road_distance = directions_data["routes"][0]["legs"][0]["distance"]["value"] / 1000  # Convert meters to kilometers
 
-        # Find the nearest stoppage for `to_id`
+        road_distance = directions_data["routes"][0]["legs"][0]["distance"]["value"] / 1000
+
+
         nearest_stoppage = None
         min_distance = float('inf')
         for stoppage in Stoppage.objects.all():
