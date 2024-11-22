@@ -44,7 +44,7 @@ class Trip(models.Model):
     to_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='trip_to_stoppage')
     distance = models.FloatField()  # Distance in kilometers
     route_id = models.ForeignKey('Route', on_delete=models.CASCADE)
-    arrival_time = models.TimeField()
+    arrival_time = models.DateTimeField()
     trip_no = models.PositiveIntegerField(unique=True, editable=False)  # Auto-generated
     timestamp = models.DateTimeField(auto_now_add=True)
 
@@ -74,6 +74,7 @@ class Route(models.Model):
         return f"Route {self.id}"
 
 class Stoppage(models.Model):
+    # id = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=100)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, default=0.0)  # Set default value
     longitude = models.DecimalField(max_digits=9, decimal_places=6, default=0.0)  # Set default value
@@ -113,18 +114,30 @@ class Bus(models.Model):
 
 
 class OngoingTrip(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE
+    )
     bus = models.ForeignKey('Bus', on_delete=models.CASCADE)
-    from_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='from_stoppage')
+    from_id = models.ForeignKey(
+        'Stoppage',
+        on_delete=models.CASCADE,
+        related_name='from_stoppage'
+    )
     trip_no = models.PositiveIntegerField(editable=False)  # Auto-generated
     route_id = models.ForeignKey('Route', on_delete=models.CASCADE)
-    arrival_time = models.TimeField()
+    arrival_time = models.DateTimeField()  # Includes date and time
 
     def __str__(self):
         return f"Ongoing Trip {self.trip_no} for user {self.user.username}"
 
     def save(self, *args, **kwargs):
-        if not self.trip_no:  # Auto-generate trip_no if not set
-            last_trip_no = OngoingTrip.objects.aggregate(Max('trip_no'))['trip_no__max'] or 0
+        # Auto-generate `trip_no` if not set
+        if not self.trip_no:
+            # Filter trips by the same user for user-specific numbering
+            last_trip_no = (
+                OngoingTrip.objects.filter(user=self.user)
+                .aggregate(Max('trip_no'))['trip_no__max'] or 0
+            )
             self.trip_no = last_trip_no + 1
         super().save(*args, **kwargs)
