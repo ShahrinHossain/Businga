@@ -82,7 +82,8 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-
+CSRF_COOKIE_HTTPONLY = False  # So that the CSRF token can be accessed by JS (Flutter app)
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 ROOT_URLCONF = 'bussinga_backend.urls'
 
