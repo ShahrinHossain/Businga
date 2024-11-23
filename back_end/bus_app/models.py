@@ -1,7 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Max
-from sqlalchemy import false
 
 
 class Profile(models.Model):
@@ -67,11 +66,13 @@ class Transaction(models.Model):
     def __str__(self):
         return f"Transaction {self.id} for {self.amount}"
 
+
 class Route(models.Model):
     stoppages = models.ManyToManyField('Stoppage')
 
     def __str__(self):
         return f"Route {self.id}"
+
 
 class Stoppage(models.Model):
     # id = models.IntegerField(primary_key=True)
@@ -82,6 +83,7 @@ class Stoppage(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class BusCompany(models.Model):
     name = models.CharField(max_length=100)
@@ -136,8 +138,8 @@ class OngoingTrip(models.Model):
         if not self.trip_no:
             # Filter trips by the same user for user-specific numbering
             last_trip_no = (
-                OngoingTrip.objects.filter(user=self.user)
-                .aggregate(Max('trip_no'))['trip_no__max'] or 0
+                    OngoingTrip.objects.filter(user=self.user)
+                    .aggregate(Max('trip_no'))['trip_no__max'] or 0
             )
             self.trip_no = last_trip_no + 1
         super().save(*args, **kwargs)

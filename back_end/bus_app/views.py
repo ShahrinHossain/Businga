@@ -1,29 +1,26 @@
 import math
 
-from django.conf import settings
 # from django.contrib.sites
 import requests
+from django.conf import settings
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404
-from geopy.format import PRIME
+from django.shortcuts import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
-import geopy
+from rest_framework.views import APIView
+from django.contrib.auth import authenticate, login, logout
 from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
+from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
+    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer
+from django.views.decorators.csrf import csrf_exempt
 
 
 # Create your views here.
 
+
 def all_users(request):
     return HttpResponse('Returning all users')
 
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from django.contrib.auth import authenticate, login, logout
-from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
-    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer
-from django.contrib.auth.models import User
-from django.views.decorators.csrf import csrf_exempt
+
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -59,9 +56,12 @@ class CurrentUserView(APIView):
             return Response({"username": request.user.username}, status=status.HTTP_200_OK)
         return Response({"username": None}, status=status.HTTP_200_OK)
 
+
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+
+
 @api_view(['GET', 'POST'])
 def example_view(request):
     if request.method == 'GET':
@@ -70,6 +70,7 @@ def example_view(request):
     elif request.method == 'POST':
         received_data = request.data
         return Response({"received_data": received_data}, status=status.HTTP_201_CREATED)
+
 
 class CurrentUserInfoView(APIView):
     def get(self, request):
@@ -122,7 +123,6 @@ class StoppageListView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-
 # @api_view(['GET', 'PUT'])
 # def update_profile_view(request):
 #     if request.method == 'GET':
@@ -151,7 +151,6 @@ class StoppageListView(APIView):
 #         print("Serializer Errors:", serializer.errors)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #
-
 
 
 class UpdateProfileView(APIView):
@@ -222,7 +221,6 @@ class AddOngoingTripView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class FinishTripView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -266,7 +264,8 @@ class FinishTripView(APIView):
         if not nearest_stoppage:
             return Response({"error": "No stoppages found to match the destination."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Make a request to Google Maps Directions API to calculate road distance between from_stoppage and nearest_stoppage
+        # Make a request to Google Maps Directions API to calculate road distance between from_stoppage and
+        # nearest_stoppage
         google_maps_api_key = settings.GOOGLE_MAPS_API_KEY
         google_maps_url = "https://maps.googleapis.com/maps/api/directions/json"
         params = {
@@ -290,7 +289,8 @@ class FinishTripView(APIView):
                 )
 
             # Get the road distance from the response
-            road_distance = directions_data["routes"][0]["legs"][0]["distance"]["value"] / 1000  # Convert meters to kilometers
+            road_distance = directions_data["routes"][0]["legs"][0]["distance"][
+                                "value"] / 1000  # Convert meters to kilometers
 
         except requests.RequestException as e:
             return Response({"error": "Error calculating road distance using Google Maps API.", "details": str(e)},
@@ -327,6 +327,7 @@ class FinishTripView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+
 
 class AddBusView(APIView):
     permission_classes = [IsAuthenticated]
