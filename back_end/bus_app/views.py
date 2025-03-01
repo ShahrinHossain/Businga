@@ -50,13 +50,6 @@ class LogoutView(APIView):
         return Response({"message": "Logout successful"}, status=200)
 
 
-class CurrentUserView(APIView):
-    def get(self, request):
-        if request.user.is_authenticated:
-            return Response({"username": request.user.username}, status=status.HTTP_200_OK)
-        return Response({"username": None}, status=status.HTTP_200_OK)
-
-
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -73,11 +66,12 @@ def example_view(request):
 
 
 class CurrentUserInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        if request.user.is_authenticated:
-            serializer = UserInfoSerializer(request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+        serializer = UserInfoSerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class AdjustBalanceView(APIView):

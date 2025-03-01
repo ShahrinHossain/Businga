@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_screen.dart';
-import 'main.dart';
+import 'navigation.dart';
 import 'route_selection_page.dart';
 import 'top_up_page.dart';
 import 'tour_page.dart';
-import 'navigation.dart';
 import 'account_page.dart';
 import 'settings.dart';
 import 'payment_page.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'globalVariables.dart';
-//import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // Add this import
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
 
@@ -25,19 +24,17 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   String? _balance; // Stores the fetched balance
   bool _isLoading = true; // Tracks if the balance is being loaded
+  String? _username; // Stores the current user's username
 
-  // Create a secure storage instance
-//  final FlutterSecureStorage secureStorage = FlutterSecureStorage();
-
-  // Function to get the stored token
+  // Function to get the stored JWT token from SharedPreferences
   Future<String?> getAuthToken() async {
-    //return await secureStorage.read(key: 'auth_token');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('access_token');  // Get the stored token
   }
 
   // Function to fetch user data using the token
   Future<void> getUserData() async {
     String? token = await getAuthToken();
-
     if (token == null) {
       // Handle the case where the token is not available
       print('User is not logged in');
@@ -56,38 +53,9 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         // Handle success
         final userData = json.decode(response.body);
-        print(userData);
-      } else {
-        // Handle failure (e.g., unauthorized)
-        print('Failed to fetch user data: ${response.body}');
-      }
-    } catch (e) {
-      print('An error occurred: $e');
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchBalance(); // Fetch balance when screen loads
-    getUserData(); // Fetch user data when screen loads
-  }
-
-  // Function to fetch the balance from the API
-  Future<void> _fetchBalance() async {
-    final url = Uri.parse('$baseUrl/users/current/'); // API endpoint for user info
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
         setState(() {
-          _balance = data['balance']?.toString() ?? 'N/A'; // Extract balance from the API response
+          _username = userData['username'];
+          _balance = userData['profile']['balance']?.toString() ?? 'N/A'; // Extract balance from the API response
           _isLoading = false;
         });
       } else {
@@ -95,14 +63,54 @@ class _HomeScreenState extends State<HomeScreen> {
           _balance = '100.00';
           _isLoading = false;
         });
+        // Handle failure (e.g., unauthorized)
+        print('Failed to fetch user data: ${response.body}');
       }
-    } catch (error) {
+    } catch (e) {
       setState(() {
         _balance = '100.00';
         _isLoading = false;
       });
+      print('An error occurred: $e');
     }
   }
+
+  @override
+  void initState() {
+    super.initState();
+    getUserData(); // Fetch user data when screen loads
+  }
+
+  // Function to fetch the balance from the API
+  // Future<void> _fetchBalance() async {
+  //   final url = Uri.parse('$baseUrl/users/current/'); // API endpoint for user info
+  //   try {
+  //     final response = await http.get(
+  //       url,
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
+  //
+  //     if (response.statusCode == 200) {
+  //       final data = json.decode(response.body);
+  //       setState(() {
+  //         _balance = data['balance']?.toString() ?? 'N/A'; // Extract balance from the API response
+  //         _isLoading = false;
+  //       });
+  //     } else {
+  //       setState(() {
+  //         _balance = '100.00';
+  //         _isLoading = false;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     setState(() {
+  //       _balance = '100.00';
+  //       _isLoading = false;
+  //     });
+  //   }
+  // }
 
   // Method to handle bottom navigation taps
   void _onItemTapped(int index) {

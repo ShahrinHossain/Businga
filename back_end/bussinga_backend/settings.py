@@ -26,15 +26,6 @@ SECRET_KEY = 'django-insecure-4a#swv3pa%-8&$313kb37%8(fe^dgv^zzg*%038rbzj6!8bnvl
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:3000",  # for local testing
-#     "http://your-flutter-app-url.com",
-# ]
-
-# CORS_ALLOWED_ORIGINS = ['*']
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -42,48 +33,25 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "rest_framework",
+    "rest_framework.authtoken",
+    "dj_rest_auth",
     'bus_app',
-    'rest_framework',
     'corsheaders',
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-# settings.py in Django
-# CORS_ALLOWED_ORIGINS = [
-#     "http://localhost:8000",
-#     "http://127.0.0.1:8000",
-#     "http://your-local-ip:8000",  # if accessing by local IP
-# ]
 
 GOOGLE_MAPS_API_KEY = 'AIzaSyADYLQhdhTVUl8e7XM1eYTSUSF9pkdYOB8'
-
-CORS_ALLOW_HEADERS = [
-    'content-type',
-    'authorization',
-]
-
-CORS_ALLOW_METHODS = [
-    'GET',
-    'POST',
-    # 'OPTIONS',
-    'DELETE',
-    'PUT',
-]
-
-CSRF_COOKIE_HTTPONLY = False  # So that the CSRF token can be accessed by JS (Flutter app)
-CSRF_COOKIE_SAMESITE = 'Lax'
 
 ROOT_URLCONF = 'bussinga_backend.urls'
 
@@ -163,10 +131,22 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+REST_AUTH = {
+    'USE_JWT': True,
+    'JWT_AUTH_COOKIE': 'djangojwtauth_cookie',
+    'JWT_AUTH_REFRESH_COOKIE': 'djangojwtauth_refresh_cookie'
+}
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "dj_rest_auth.jwt_auth.JWTCookieAuthentication",
     ),
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:56261",  # Replace with your actual Flutter app's URL
+    "http://127.0.0.1:8000",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_ALL_ORIGINS = True

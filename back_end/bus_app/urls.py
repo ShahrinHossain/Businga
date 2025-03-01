@@ -1,7 +1,7 @@
 from django.urls import path
-
+from dj_rest_auth.views import LoginView
 from .serializers import BalanceAdjustmentSerializer
-from .views import RegisterView, LoginView, LogoutView, CurrentUserView, example_view, CurrentUserInfoView, \
+from .views import RegisterView, LogoutView, example_view, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
     AddBusCompanyView, FinishTripView
 from . import views

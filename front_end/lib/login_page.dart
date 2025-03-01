@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert'; // For parsing JSON responses
 import 'home_screen.dart';
 import 'globalVariables.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
 
@@ -45,6 +46,14 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (response.statusCode == 200) {
+        // Parse the JWT token from the response
+        final responseBody = json.decode(response.body);
+        final String accessToken = responseBody['access'];
+
+        // Store JWT token in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('access_token', accessToken);
+
         Navigator.pop(context);
         Navigator.pushReplacement(
           context,
@@ -89,13 +98,11 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 50),
 
                 // Logo
-                // Logo
                 const Icon(
                   Icons.lock,
                   size: 100,
                   color: Color(0xFF006B5F), // Deep Sea Green color
                 ),
-
 
                 const SizedBox(height: 50),
 

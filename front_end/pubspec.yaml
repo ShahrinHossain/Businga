@@ -30,14 +30,14 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  http: ^1.2.0  # Add this line
+  http: ^0.13.5
   google_maps_flutter: ^2.0.6
   permission_handler: ^11.2.0
   qr_code_scanner: ^1.0.0
   url_launcher: ^6.1.7
   font_awesome_flutter: ^10.7.0
   cupertino_icons: ^1.0.8
-  shared_preferences: ^2.3.2
+  shared_preferences: ^2.0.13
  # flutter_secure_storage: ^6.0.0
 
 
