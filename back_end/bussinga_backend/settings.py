@@ -143,10 +143,19 @@ REST_FRAMEWORK = {
     ),
 }
 
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:56261",  # Replace with your actual Flutter app's URL
+#     "http://127.0.0.1:8000",
+#
+# ]
+
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:56261",  # Replace with your actual Flutter app's URL
-    "http://127.0.0.1:8000",
+    "http://localhost:56261",  # For Flutter Web or local emulator
+    "http://127.0.0.1:8000",   # If running backend locally
+    "http://10.0.2.2:56261",   # For Android Emulator
+    "http://192.168.1.4:8000",  # For real device on local network
 ]
+
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True

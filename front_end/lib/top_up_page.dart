@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class TopUpPage extends StatefulWidget {
@@ -17,9 +17,9 @@ class _TopUpPageState extends State<TopUpPage> {
   void reassemble() {
     super.reassemble();
     if (Platform.isAndroid) {
-      controller!.pauseCamera();
+      controller?.pauseCamera();
     }
-    controller!.resumeCamera();
+    controller?.resumeCamera();
   }
 
   @override
@@ -49,7 +49,7 @@ class _TopUpPageState extends State<TopUpPage> {
                 borderRadius: 10,
                 borderLength: 30,
                 borderWidth: 10,
-                cutOutSize: 250, // Set the size of the square box here
+                cutOutSize: 250,
               ),
             ),
           ),
@@ -66,7 +66,7 @@ class _TopUpPageState extends State<TopUpPage> {
             child: ElevatedButton(
               onPressed: () {
                 if (qrCodeResult != null) {
-                  _launchURL(qrCodeResult!); // Launch the URL
+                  _launchURL(qrCodeResult!);
                 } else {
                   print("No QR Code scanned");
                 }
@@ -90,7 +90,7 @@ class _TopUpPageState extends State<TopUpPage> {
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
       setState(() {
-        qrCodeResult = scanData.code; // Store the scanned QR code data
+        qrCodeResult = scanData.code;
       });
     });
   }
@@ -101,7 +101,6 @@ class _TopUpPageState extends State<TopUpPage> {
     super.dispose();
   }
 
-  // Function to launch the URL using canLaunchUrl and launchUrl
   void _launchURL(String url) async {
     Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
