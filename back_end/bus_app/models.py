@@ -8,7 +8,6 @@ class Profile(models.Model):
 
     name = models.CharField(max_length=100)
     contact = models.CharField(max_length=15, default="1234567890")
-
     role = models.CharField(max_length=100)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
@@ -16,12 +15,12 @@ class Profile(models.Model):
         return f"Profile of {self.name}"
 
     @staticmethod
-    def create_profile(user):
+    def create_profile(user, role):
         profile = Profile.objects.create(
             user=user,
             name=user.username,
             contact="Unknown",
-            role="User",
+            role=role,
             balance=0.00
         )
         return profile

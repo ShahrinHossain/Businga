@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_screen.dart';
+import 'home_screen_driver.dart';
 import 'globalVariables.dart';
 
 var baseUrl = getIp();
@@ -20,6 +21,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  String selectedRole = '';
 
   void signUserUp() async {
     showDialog(
@@ -37,10 +39,51 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+    if (selectedRole.isEmpty) {
+      Navigator.pop(context);
+      wrongPasswordMessage("Please select a role");
+      return;
+    }
+
+    Navigator.pop(context); // Close loading indicator
+
+    // Map the selectedRole to the corresponding role string
+    String mappedRole = '';
+    switch (selectedRole) {
+      case 'passenger':
+        mappedRole = 'User';
+        break;
+      case 'bus_driver':
+        mappedRole = 'Driver';
+        break;
+      case 'bus_owner':
+        mappedRole = 'Owner';
+        break;
+      default:
+        mappedRole = '';
+    }
+
+    print('Mapped Role: $mappedRole');
+    completeRegistration(mappedRole);
+  }
+
+  void completeRegistration(String role) async {
+    print('Mapped Role: $role');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(color: deepSeaGreen),
+        );
+      },
+    );
+
     final Map<String, String> registrationData = {
       'email': emailController.text,
       'username': usernameController.text,
       'password': passwordController.text,
+      'role': role, // Pass the mapped role
     };
 
     try {
@@ -50,14 +93,28 @@ class _RegisterPageState extends State<RegisterPage> {
         body: json.encode(registrationData),
       );
 
+      Navigator.pop(context); // Close loading indicator
+
       if (response.statusCode == 201) {
-        Navigator.pop(context);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
+        if (role == 'Driver') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => DriverHomeScreen()), // Navigate to driver home
+          );
+        }
+        // else if (role == 'Owner') {
+        //   Navigator.pushReplacement(
+        //     context,
+        //     MaterialPageRoute(builder: (context) => HomeScreenOwner()), // Navigate to owner home
+        //   );
+        // }
+        else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomeScreen()), // Default home screen
+          );
+        }
       } else {
-        Navigator.pop(context);
         final error = json.decode(response.body)['error'];
         wrongPasswordMessage(error ?? 'An error occurred. Please try again.');
       }
@@ -66,6 +123,8 @@ class _RegisterPageState extends State<RegisterPage> {
       wrongPasswordMessage('An error occurred. Please try again.');
     }
   }
+
+
 
   void wrongPasswordMessage(String message) {
     showDialog(
@@ -92,17 +151,104 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 50),
+                const SizedBox(height: 20),
 
-                Text(
-                  'Let\'s create an account for you!',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 16,
+                // Title for role selection
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    'Choose your role:',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 20),
+
+                // Role Selection Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 60),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedRole = 'bus_owner';
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: selectedRole == 'bus_owner'
+                                ? deepSeaGreen
+                                : Colors.grey[200],
+                          ),
+                          child: const Text(
+                            'Bus Owner',
+                            style: TextStyle(color: Colors.black,
+                              fontSize: 18),
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedRole = 'bus_driver';
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            color: selectedRole == 'bus_driver'
+                                ? deepSeaGreen
+                                : Colors.grey[200],
+                          ),
+                          child: const Text(
+                            'Bus Driver',
+                            style: TextStyle(color: Colors.black,
+                              fontSize: 18),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Passenger Role Box
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedRole = 'passenger';
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: selectedRole == 'passenger'
+                            ? deepSeaGreen
+                            : Colors.grey[200],
+                      ),
+                      child: const Text(
+                        'Passenger',
+                        style: TextStyle(color: Colors.black,
+                          fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
 
                 // Email TextField
                 Padding(

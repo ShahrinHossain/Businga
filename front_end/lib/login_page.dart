@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For parsing JSON responses
 import 'home_screen.dart';
+import 'home_screen_driver.dart';
+import 'loading_screen.dart';
 import 'globalVariables.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
 
@@ -19,6 +21,81 @@ class _LoginPageState extends State<LoginPage> {
   // text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  // void signUserIn() async {
+  //   // Show loading dialog
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return const Center(
+  //         child: CircularProgressIndicator(),
+  //       );
+  //     },
+  //   );
+  //
+  //   // Prepare data for login
+  //   final Map<String, String> loginData = {
+  //     'username': emailController.text,
+  //     'password': passwordController.text,
+  //   };
+  //
+  //   try {
+  //     final response = await http.post(
+  //       Uri.parse('$baseUrl/users/login/'),
+  //       headers: {'Content-Type': 'application/json'},
+  //       body: json.encode(loginData),
+  //     );
+  //
+  //     // Debugging: Check the status code and response body
+  //     print('Response Status Code: ${response.statusCode}');
+  //     print('Response Body: ${response.body}');
+  //
+  //     if (response.statusCode == 200) {
+  //       // Parse the response body
+  //       final responseBody = json.decode(response.body);
+  //       final String accessToken = responseBody['access'];
+  //       final String role = responseBody['role'];  // Get the role from the response
+  //
+  //       // Debugging: Check role and accessToken values
+  //       print('Access Token: $accessToken');
+  //       print('Role: $role');
+  //
+  //       // Store JWT token in SharedPreferences
+  //       SharedPreferences prefs = await SharedPreferences.getInstance();
+  //       await prefs.setString('access_token', accessToken);
+  //
+  //       // Close the loading dialog
+  //       Navigator.pop(context);
+  //
+  //       // Redirect to different screens based on the role
+  //       if (role == 'driver') {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => DriverHomeScreen()),  // Redirect to driver screen
+  //         );
+  //       } else if (role == 'passenger') {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => HomeScreen()),  // Redirect to passenger screen
+  //         );
+  //       } else {
+  //         Navigator.pushReplacement(
+  //           context,
+  //           MaterialPageRoute(builder: (context) => HomeScreen()),  // Default home screen
+  //         );
+  //       }
+  //     } else {
+  //       Navigator.pop(context);
+  //       final error = json.decode(response.body)['error'];
+  //       wrongEmailMessage(error ?? 'An error occurred. Please try again.');
+  //     }
+  //   } catch (e) {
+  //     Navigator.pop(context);
+  //     print('Error: $e');  // Debugging line to log the error
+  //     wrongEmailMessage('An error occurred. Please try again.');
+  //   }
+  // }
+
 
   // sign user in method
   void signUserIn() async {
@@ -57,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pop(context);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+          MaterialPageRoute(builder: (context) => LoadingScreen()),
         );
       } else {
         Navigator.pop(context);

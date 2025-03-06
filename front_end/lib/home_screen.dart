@@ -207,13 +207,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       SizedBox(height: 20),
                       // Routes and Top-up Buttons
+                      // Routes and Top-up Buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage()),
-                          _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, PaymentPage()),
+                          _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage(), textColor: Colors.black),
+                          _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, PaymentPage(), textColor: Colors.black),
                         ],
                       ),
+
                       SizedBox(height: 20),
                       // Balance Info - Dynamic content here
                       _buildInfoCard('Balance', _isLoading ? 'Loading...' : (_balance ?? '100.00'), Colors.greenAccent),
@@ -313,7 +315,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Function to build feature cards like Routes and Top-up
-  Widget _buildFeatureCard(BuildContext context, String title, IconData icon, Color color, Widget nextPage) {
+  // Updated Feature Card Function
+  Widget _buildFeatureCard(BuildContext context, String title, IconData icon, Color color, Widget nextPage, {Color textColor = Colors.black}) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => nextPage));
@@ -327,11 +330,11 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 40, color: Colors.white),
+              Icon(icon, size: 40, color: Colors.black),
               SizedBox(height: 10),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                style: TextStyle(fontSize: 16, color: textColor), // Now text color can be changed dynamically
               ),
             ],
           ),
@@ -339,6 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 
   // Function to build balance and location info cards
   Widget _buildInfoCard(String title, String content, Color color) {
@@ -352,11 +356,11 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
             ),
             Text(
               content,
-              style: TextStyle(fontSize: 16, color: Colors.white),
+              style: TextStyle(fontSize: 16, color: Colors.black),
             ),
           ],
         ),

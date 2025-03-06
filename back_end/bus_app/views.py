@@ -21,12 +21,23 @@ def all_users(request):
     return HttpResponse('Returning all users')
 
 
+# class RegisterView(APIView):
+#     def post(self, request):
+#         serializer = UserSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+
+        # Log serializer errors to see what went wrong
+        print(serializer.errors)  # This will print the validation errors to the console
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -41,6 +52,28 @@ class LoginView(APIView):
             login(request, user)
             return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+# class LoginView(APIView):
+#     def post(self, request):
+#         username = request.data.get('username')
+#         password = request.data.get('password')
+#         print(username)
+#         print(password)
+#         user = authenticate(request, username=username, password=password)
+#         if user is not None:
+#             login(request, user)
+#             try:
+#                 # Fetch the profile associated with the user
+#                 profile = Profile.objects.get(user=user)
+#                 role = profile.role  # Get the role from the profile
+#                 return Response({
+#                     "message": "Login successful",
+#                     "role": role,  # Include the role in the response
+#                     "access": 'some_jwt_token'  # Your JWT token logic here
+#                 }, status=status.HTTP_200_OK)
+#             except Profile.DoesNotExist:
+#                 return Response({"error": "Profile not found"}, status=status.HTTP_400_BAD_REQUEST)
+#         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
