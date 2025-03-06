@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'globalVariables.dart';
 import 'home_screen_driver.dart';
 import 'home_screen.dart';
+import 'home_screen_owner.dart';
 import 'login_screen.dart';
 
 class LoadingScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
           );
         } else if (role == 'Owner') {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+            MaterialPageRoute(builder: (context) => BusOwnerHomeScreen()),
           );
         } else {
           // Handle unknown role (optional)
