@@ -51,7 +51,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyADYLQhdhTVUl8e7XM1eYTSUSF9pkdYOB8'
+GOOGLE_MAPS_API_KEY = 'AIzaSyB9C6viTxdaZbqrwtU8KqRxyIYTT1AmXYA'
 
 ROOT_URLCONF = 'bussinga_backend.urls'
 

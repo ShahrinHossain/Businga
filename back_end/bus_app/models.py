@@ -10,6 +10,7 @@ class Profile(models.Model):
     contact = models.CharField(max_length=15, default="1234567890")
     role = models.CharField(max_length=100)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    in_route = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Profile of {self.name}"
@@ -21,7 +22,8 @@ class Profile(models.Model):
             name=user.username,
             contact="Unknown",
             role=role,
-            balance=0.00
+            balance=0.00,
+            in_route=False
         )
         return profile
 
@@ -41,6 +43,7 @@ class Trip(models.Model):
     from_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='trip_from_stoppage')
     to_id = models.ForeignKey('Stoppage', on_delete=models.CASCADE, related_name='trip_to_stoppage')
     distance = models.FloatField()  # Distance in kilometers
+    fare = models.DecimalField(max_digits=10, decimal_places=2)
     route_id = models.ForeignKey('Route', on_delete=models.CASCADE)
     arrival_time = models.DateTimeField()
     trip_no = models.PositiveIntegerField(unique=True, editable=False)  # Auto-generated
@@ -119,7 +122,10 @@ class OngoingTrip(models.Model):
         'auth.User',
         on_delete=models.CASCADE
     )
-    bus = models.ForeignKey('Bus', on_delete=models.CASCADE)
+    bus_id = models.ForeignKey(  # Renamed from 'bus' to 'bus_id'
+        'Bus',
+        on_delete=models.CASCADE
+    )
     from_id = models.ForeignKey(
         'Stoppage',
         on_delete=models.CASCADE,
@@ -137,8 +143,8 @@ class OngoingTrip(models.Model):
         if not self.trip_no:
             # Filter trips by the same user for user-specific numbering
             last_trip_no = (
-                    OngoingTrip.objects.filter(user=self.user)
-                    .aggregate(Max('trip_no'))['trip_no__max'] or 0
+                OngoingTrip.objects.filter(user=self.user)
+                .aggregate(Max('trip_no'))['trip_no__max'] or 0
             )
             self.trip_no = last_trip_no + 1
         super().save(*args, **kwargs)
