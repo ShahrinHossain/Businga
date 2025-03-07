@@ -133,6 +133,42 @@ class AdjustBalanceView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AddToBalanceView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def post(self, request):
+        # Check if the user is authenticated
+        user = request.user
+
+        # Extract the amount from the request data
+        amount = request.data.get('amount')
+
+        # Validate the amount
+        if amount is None:
+            return Response({"error": "Amount is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            amount = Decimal(amount)  # Convert amount to Decimal for proper arithmetic
+        except (ValueError, InvalidOperation):
+            return Response({"error": "Invalid amount format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Ensure the amount is greater than or equal to 0
+        if amount < 0:
+            return Response({"error": "Amount must be greater than or equal to 0"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the user's profile
+        profile = get_object_or_404(Profile, user=user)
+
+        # Add the amount to the user's balance
+        profile.balance += amount
+        profile.save()
+
+        return Response({
+            "message": "Balance updated successfully",
+            "balance": str(profile.balance)  # Convert balance to string to avoid Decimal format issues
+        }, status=status.HTTP_200_OK)
+
+
 class StoppageCreateView(APIView):
     def post(self, request):
         serializer = StoppageSerializer(data=request.data)

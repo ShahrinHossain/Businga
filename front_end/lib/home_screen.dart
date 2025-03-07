@@ -212,7 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage(), textColor: Colors.black),
-                          _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, PaymentPage(), textColor: Colors.black),
+                          _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, const Checkout(), textColor: Colors.black),
                         ],
                       ),
 

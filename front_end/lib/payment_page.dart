@@ -1,56 +1,44 @@
-import 'package:businga1/globalVariables.dart';
+import 'package:businga1/services/paymentHelper.dart';
 import 'package:flutter/material.dart';
 
-class PaymentPage extends StatefulWidget {
+class Checkout extends StatefulWidget {
+  const Checkout({super.key});
+
   @override
-  _PaymentPageState createState() => _PaymentPageState();
+  State<Checkout> createState() => _CheckoutState();
 }
 
-class _PaymentPageState extends State<PaymentPage> {
-  String? _selectedMethod;
+class _CheckoutState extends State<Checkout> {
+  String? selected;
   final TextEditingController _amountController = TextEditingController();
 
-  // Function to handle payment method selection
-  void _selectPaymentMethod(String method) {
-    setState(() {
-      _selectedMethod = method;
-    });
-  }
+  List<Map> gateways = [
+    {
+      'name': 'SslCommerz',
+      'logo':
+      'https://apps.odoo.com/web/image/loempia.module/193670/icon_image?unique=c301a64',
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.teal[800],
-        elevation: 0,
+        backgroundColor: Colors.blueAccent,
         title: const Text(
-          'Top Up',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          'Checkout',
+          style: TextStyle(color: Colors.white),
         ),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(15),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Choose a Payment Method',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            _buildPaymentOption('via BKash', Icons.phone_android),
-            _buildPaymentOption('via Card', Icons.credit_card),
-            _buildPaymentOption('via Nagad', Icons.phone_android),
-            SizedBox(height: 30),
-            const Text(
               'Enter Amount',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
               controller: _amountController,
               keyboardType: TextInputType.number,
@@ -58,29 +46,72 @@ class _PaymentPageState extends State<PaymentPage> {
                 hintText: 'Enter amount in BDT',
                 filled: true,
                 fillColor: Colors.grey[200],
-                contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide.none,
                 ),
               ),
             ),
-            SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                // Handle the top-up process here
-                _performTopUp();
+            const SizedBox(height: 20),
+            const Text(
+              'Select a payment method',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 10),
+            ListView.separated(
+              shrinkWrap: true,
+              primary: false,
+              itemBuilder: (_, index) {
+                return PaymentMethodTile(
+                  logo: gateways[index]['logo'],
+                  name: gateways[index]['name'],
+                  selected: selected ?? '',
+                  onTap: () {
+                    selected = gateways[index]['name']
+                        .toString()
+                        .replaceAll(' ', '_')
+                        .toLowerCase();
+                    setState(() {});
+                  },
+                );
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.greenAccent,
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+              separatorBuilder: (_, index) => const SizedBox(height: 10),
+              itemCount: gateways.length,
+            ),
+            const SizedBox(height: 20),
+            InkWell(
+              onTap: selected == null
+                  ? null
+                  : () {
+                double amount = double.tryParse(_amountController.text) ?? 0;
+                if (amount > 0) {
+                  sslcommerz(amount, context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Please enter a valid amount')),
+                  );
+                }
+              },
+              child: Container(
+                height: 50,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: selected == null
+                      ? Colors.blueAccent.withOpacity(.5)
+                      : Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ),
-              child: Text(
-                'Confirm Top-Up',
-                style: TextStyle(fontSize: 18, color: Colors.black),
+                child: const Center(
+                  child: Text(
+                    'Continue to payment',
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
               ),
             ),
           ],
@@ -88,39 +119,42 @@ class _PaymentPageState extends State<PaymentPage> {
       ),
     );
   }
+}
 
-  // Widget to build a payment option button
-  Widget _buildPaymentOption(String method, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, size: 30, color: Colors.teal),
-      title: Text(
-        method,
-        style: TextStyle(fontSize: 16),
+class PaymentMethodTile extends StatelessWidget {
+  final String logo;
+  final String name;
+  final Function()? onTap;
+  final String selected;
+
+  const PaymentMethodTile({
+    super.key,
+    required this.logo,
+    required this.name,
+    this.onTap,
+    required this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected == name.replaceAll(' ', '_').toLowerCase()
+                ? Colors.blueAccent
+                : Colors.black.withOpacity(.1),
+            width: 2,
+          ),
+        ),
+        child: ListTile(
+          leading: Image.network(logo, height: 35, width: 35),
+          title: Text(name),
+        ),
       ),
-      trailing: Radio<String>(
-        value: method,
-        groupValue: _selectedMethod,
-        onChanged: (String? value) {
-          _selectPaymentMethod(value!);
-        },
-      ),
-      onTap: () => _selectPaymentMethod(method),
     );
-  }
-
-  // Function to handle the top-up logic
-  void _performTopUp() {
-    final amount = _amountController.text;
-    if (_selectedMethod != null && amount.isNotEmpty) {
-      // Implement the top-up process
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Top-up via $_selectedMethod for $amount BDT')),
-      );
-    } else {
-      // Show an error message if no method or amount is selected
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select a payment method and enter an amount')),
-      );
-    }
   }
 }
