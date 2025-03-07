@@ -41,6 +41,7 @@ dependencies:
   shared_preferences: ^2.0.13
   geolocator: ^13.0.2
   intl: ^0.18.0
+  flutter_sslcommerz: ^2.4.1
  # flutter_secure_storage: ^6.0.0
 
 
