@@ -369,7 +369,7 @@ class FinishTripView(APIView):
                 if route["duration"] == "0s":
                     road_distance = 0  # Set distance to 0 if duration is 0s
                 else:
-                    road_distance = route["legs"][0]["distance"]["value"] / 1000  # Convert meters to km
+                    road_distance = route["distanceMeters"] / 1000  # Convert meters to km
             else:
                 return Response(
                     {"error": "No valid route found for the specified locations."},
