@@ -1,9 +1,12 @@
 # Byte-compiled files
 __pycache__/
 *.py[cod]
+*.pyc
+
 
 # Environment variables file
 .env
+.venv
 
 # Django and Python-related
 db.sqlite3

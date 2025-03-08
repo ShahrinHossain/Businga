@@ -67,6 +67,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 "contact": obj.profile.contact,
                 "role": obj.profile.role,
                 "balance": obj.profile.balance,
+                "in_route": obj.profile.in_route
             }
         return None
 
@@ -90,7 +91,7 @@ class OngoingTripSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OngoingTrip
-        fields = ['user', 'bus', 'from_id', 'trip_no', 'route_id', 'arrival_time']
+        fields = ['user', 'bus_id', 'from_id', 'trip_no', 'route_id', 'arrival_time']
 
 class BusSerializer(serializers.ModelSerializer):
     class Meta:

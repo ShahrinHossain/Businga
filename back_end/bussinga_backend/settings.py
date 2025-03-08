@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+from datetime import timedelta
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -51,7 +51,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
-GOOGLE_MAPS_API_KEY = 'AIzaSyADYLQhdhTVUl8e7XM1eYTSUSF9pkdYOB8'
+GOOGLE_MAPS_API_KEY = 'AIzaSyB9C6viTxdaZbqrwtU8KqRxyIYTT1AmXYA'
 
 ROOT_URLCONF = 'bussinga_backend.urls'
 
@@ -159,3 +159,12 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=2),  # Change as needed
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),  # Change as needed
+    "ROTATE_REFRESH_TOKENS": True,  # Allows issuing new refresh tokens
+    "BLACKLIST_AFTER_ROTATION": True,  # Blacklists old refresh tokens
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}

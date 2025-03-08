@@ -1,4 +1,5 @@
 import math
+from decimal import Decimal
 
 # from django.contrib.sites
 import requests
@@ -132,6 +133,42 @@ class AdjustBalanceView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class AddToBalanceView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def post(self, request):
+        # Check if the user is authenticated
+        user = request.user
+
+        # Extract the amount from the request data
+        amount = request.data.get('amount')
+
+        # Validate the amount
+        if amount is None:
+            return Response({"error": "Amount is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            amount = Decimal(amount)  # Convert amount to Decimal for proper arithmetic
+        except (ValueError, InvalidOperation):
+            return Response({"error": "Invalid amount format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Ensure the amount is greater than or equal to 0
+        if amount < 0:
+            return Response({"error": "Amount must be greater than or equal to 0"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Retrieve the user's profile
+        profile = get_object_or_404(Profile, user=user)
+
+        # Add the amount to the user's balance
+        profile.balance += amount
+        profile.save()
+
+        return Response({
+            "message": "Balance updated successfully",
+            "balance": str(profile.balance)  # Convert balance to string to avoid Decimal format issues
+        }, status=status.HTTP_200_OK)
+
+
 class StoppageCreateView(APIView):
     def post(self, request):
         serializer = StoppageSerializer(data=request.data)
@@ -206,6 +243,14 @@ class AddOngoingTripView(APIView):
 
     @csrf_exempt
     def post(self, request):
+        # Get the user's profile
+        profile = Profile.objects.get(user=request.user)
+
+        # Check if the user's balance is 0 or negative
+        if profile.balance <= 0:
+            return Response({"error": "Insufficient balance. Please top up before starting a trip."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         # Extract latitude and longitude from the request data
         latitude = request.data.get('latitude')
         longitude = request.data.get('longitude')
@@ -234,7 +279,7 @@ class AddOngoingTripView(APIView):
 
         if not closest_stoppage:
             return Response({"error": "No stoppages found."}, status=status.HTTP_404_NOT_FOUND)
-        # print(closest_stoppage.id)
+
         # Include the authenticated user and closest stoppage in the request data
         data = request.data.copy()  # Create a mutable copy of the request data
         data['from_id'] = closest_stoppage.id
@@ -244,16 +289,39 @@ class AddOngoingTripView(APIView):
         serializer = OngoingTripSerializer(data=data)
         if serializer.is_valid():
             serializer.save()  # trip_no will be auto-generated here
+
+            # Update user's Profile to set in_route = True
+            profile.in_route = True
+            profile.save(update_fields=['in_route'])
+
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def calculate_fare(distance):
+    return max(10.0, distance * 2.45)
+
+
+def decimal_to_float(obj):
+    """ Recursively convert Decimals to floats in a JSON-serializable format. """
+    if isinstance(obj, Decimal):
+        return float(obj)
+    elif isinstance(obj, dict):
+        return {key: decimal_to_float(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [decimal_to_float(item) for item in obj]
+    return obj
+
 
 
 class FinishTripView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        latitude = request.data.get('latitude')
-        longitude = request.data.get('longitude')
+        latitude = request.data.get("latitude")
+        longitude = request.data.get("longitude")
+        print("HIT")
 
         # Validate inputs
         if latitude is None or longitude is None:
@@ -272,12 +340,10 @@ class FinishTripView(APIView):
 
         # Get the stoppage details from the last ongoing trip
         from_stoppage = ongoing_trip.from_id
-        from_coordinates = (from_stoppage.latitude, from_stoppage.longitude)
-        to_coordinates = (latitude, longitude)
 
         # Find the nearest stoppage to the provided latitude and longitude
         nearest_stoppage = None
-        min_distance = float('inf')
+        min_distance = float("inf")
 
         for stoppage in Stoppage.objects.all():
             distance = math.sqrt(
@@ -291,47 +357,87 @@ class FinishTripView(APIView):
         if not nearest_stoppage:
             return Response({"error": "No stoppages found to match the destination."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Make a request to Google Maps Directions API to calculate road distance between from_stoppage and
-        # nearest_stoppage
+        print(f"{from_stoppage.latitude} {from_stoppage.longitude}")
+        print(f"{nearest_stoppage.latitude} {nearest_stoppage.longitude}")
+
+        # Make a request to Google Maps Routes API (New Method)
         google_maps_api_key = settings.GOOGLE_MAPS_API_KEY
-        google_maps_url = "https://maps.googleapis.com/maps/api/directions/json"
-        params = {
-            "origin": f"{from_stoppage.latitude},{from_stoppage.longitude}",
-            "destination": f"{nearest_stoppage.latitude},{nearest_stoppage.longitude}",
-            "key": google_maps_api_key
+        google_routes_url = "https://routes.googleapis.com/directions/v2:computeRoutes"
+        payload = {
+            "origin": {
+                "location": {
+                    "latLng": {
+                        "latitude": decimal_to_float(from_stoppage.latitude),
+                        "longitude": decimal_to_float(from_stoppage.longitude)
+                    }
+                }
+            },
+            "destination": {
+                "location": {
+                    "latLng": {
+                        "latitude": decimal_to_float(nearest_stoppage.latitude),
+                        "longitude": decimal_to_float(nearest_stoppage.longitude)
+                    }
+                }
+            },
+            "travelMode": "DRIVE"
         }
 
+        headers = {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": settings.GOOGLE_MAPS_API_KEY,
+            "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
+        }
+
+        #
         try:
-            response = requests.get(google_maps_url, params=params)
-            response.raise_for_status()  # Raise HTTPError for bad responses
-            directions_data = response.json()
+            response = requests.post(google_routes_url, json=payload, headers=headers)
+            response.raise_for_status()
+            routes_data = response.json()
+            print(routes_data)
 
-            # Print the raw response from the Google Maps API
-            print("Google Maps API response:", directions_data)
-
-            if directions_data.get("status") != "OK":
+            # Check if routes are found and handle the case where duration is 0s
+            print(routes_data.get("status"))
+            if "routes" in routes_data and routes_data["routes"]:
+                route = routes_data["routes"][0]
+                print(route)
+                # Check if the duration is 0s
+                if route["duration"] == "0s":
+                    road_distance = 0  # Set distance to 0 if duration is 0s
+                else:
+                    road_distance = route["distanceMeters"] / 1000  # Convert meters to km
+            else:
                 return Response(
-                    {"error": "No route found for the specified locations."},
+                    {"error": "No valid route found for the specified locations."},
                     status=status.HTTP_404_NOT_FOUND
                 )
 
-            # Get the road distance from the response
-            road_distance = directions_data["routes"][0]["legs"][0]["distance"][
-                                "value"] / 1000  # Convert meters to kilometers
-
         except requests.RequestException as e:
-            return Response({"error": "Error calculating road distance using Google Maps API.", "details": str(e)},
+            return Response({"error": "Failed to fetch route data", "details": str(e)},
                             status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Calculate the fare
+        fare = calculate_fare(road_distance)
+
+        # Deduct fare from the user's balance
+        profile = Profile.objects.get(user=request.user)
+        fare_decimal = Decimal(fare)
+
+        # Perform the subtraction
+        profile.balance -= fare_decimal
+        profile.in_route = False
+        profile.save(update_fields=["balance", "in_route"])
 
         # Add entry to Trip table
         trip = Trip.objects.create(
             user=ongoing_trip.user,
-            bus=ongoing_trip.bus,
+            bus=ongoing_trip.bus_id,
             from_id=from_stoppage,
             to_id=nearest_stoppage,
             distance=road_distance,
             route_id=ongoing_trip.route_id,
-            arrival_time=ongoing_trip.arrival_time
+            arrival_time=ongoing_trip.arrival_time,
+            fare=fare,
         )
 
         # Remove the ongoing trip entry
@@ -346,15 +452,15 @@ class FinishTripView(APIView):
                     "from_id": trip.from_id.id,
                     "to_id": trip.to_id.id,
                     "distance": trip.distance,
+                    "fare": trip.fare,
                     "route_id": trip.route_id.id,
                     "arrival_time": trip.arrival_time,
                     "trip_no": trip.trip_no,
-                    "timestamp": trip.timestamp
-                }
+                    "timestamp": trip.timestamp,
+                },
             },
-            status=status.HTTP_201_CREATED
+            status=status.HTTP_201_CREATED,
         )
-
 
 class AddBusView(APIView):
     permission_classes = [IsAuthenticated]
