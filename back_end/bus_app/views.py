@@ -244,6 +244,8 @@ class AddOngoingTripView(APIView):
     @csrf_exempt
     def post(self, request):
         # Get the user's profile
+        print(request.data)
+
         profile = Profile.objects.get(user=request.user)
 
         # Check if the user's balance is 0 or negative
@@ -466,6 +468,7 @@ class AddBusView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # print(request.data)
         # Extract data from request
         registration_no = request.data.get('registration_no')
         condition = request.data.get('condition')
