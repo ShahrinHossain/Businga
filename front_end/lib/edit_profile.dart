@@ -47,7 +47,7 @@ class EditProfilePage extends StatelessWidget {
             // Name field
             TextField(
               decoration: InputDecoration(
-                labelText: 'Name',
+                labelText: 'Name',   // NAMEEEEE
                 border: OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey.shade100,
@@ -58,7 +58,7 @@ class EditProfilePage extends StatelessWidget {
             // Email field
             TextField(
               decoration: InputDecoration(
-                labelText: 'Email',
+                labelText: 'Email',  // EMIALLLLL
                 border: OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey.shade100,
@@ -70,7 +70,7 @@ class EditProfilePage extends StatelessWidget {
             TextField(
               obscureText: true,
               decoration: InputDecoration(
-                labelText: 'Password',
+                labelText: 'Password', // PASSWORRDDD
                 border: OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey.shade100,
@@ -81,7 +81,7 @@ class EditProfilePage extends StatelessWidget {
             // Date of Birth field
             TextField(
               decoration: InputDecoration(
-                labelText: 'Date of Birth',
+                labelText: 'Date of Birth',   // DATE OFFF BIRTHHHH
                 border: OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey.shade100,
@@ -92,7 +92,7 @@ class EditProfilePage extends StatelessWidget {
             // Country/Region field
             TextField(
               decoration: InputDecoration(
-                labelText: 'Region',
+                labelText: 'Region',    // REGIIIONNN
                 border: OutlineInputBorder(),
                 filled: true,
                 fillColor: Colors.grey.shade100,

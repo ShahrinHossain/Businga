@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany
+from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverTrip, DriverProfile
 
 
 
@@ -54,6 +54,55 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 "role": obj.profile.role,
                 "balance": obj.profile.balance,
                 "in_route": obj.profile.in_route
+            }
+        return None
+
+class DriverSerializer(serializers.ModelSerializer):
+    date_of_birth = serializers.DateField()  # Add date of birth field
+    region = serializers.CharField()  # Add region field
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'password', 'date_of_birth', 'region']
+        extra_kwargs = {'password': {'write_only': True}}  # Hide password in responses
+
+    def create(self, validated_data):
+        # Extract additional fields
+        date_of_birth = validated_data.pop('date_of_birth')
+        region = validated_data.pop('region')
+
+        # Create user
+        user = User(
+            email=validated_data['email'],
+            username=validated_data['username'],
+        )
+        user.set_password(validated_data['password'])
+        user.save()
+
+        # Create DriverProfile and assign additional fields
+        DriverProfile.create_driver(user, date_of_birth, region)
+
+        return user
+
+
+class DriverInfoSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()  # Custom field for full name
+    profile = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ['id', 'username', 'email', 'name', 'profile']
+
+    def get_name(self, obj):
+        if hasattr(obj, 'driverprofile'):
+            return obj.driverprofile.name
+        return None
+
+    def get_profile(self, obj):
+        if hasattr(obj, 'driverprofile'):
+            return {
+                "date_of_birth": obj.driverprofile.date_of_birth,
+                "region": obj.driverprofile.region
             }
         return None
 

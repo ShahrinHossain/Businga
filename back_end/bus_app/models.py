@@ -28,6 +28,38 @@ class Profile(models.Model):
         return profile
 
 
+
+class DriverProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driverprofile')
+    name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    region = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"Driver {self.name} from {self.region}"
+
+    @classmethod
+    def create_driver(cls, user, date_of_birth, region):
+        """Creates a new driver profile linked to a user."""
+        driver_profile = cls.objects.create(
+            user=user,
+            name=user.username,  # Default name is the username
+            date_of_birth=date_of_birth,
+            region=region
+        )
+        return driver_profile
+
+class DriverTrip(models.Model):
+        driver = models.ForeignKey(DriverProfile, on_delete=models.CASCADE)
+        bus = models.ForeignKey('Bus', on_delete=models.CASCADE)
+        route = models.ForeignKey('Route', on_delete=models.CASCADE)
+        start_time = models.DateTimeField()
+        end_time = models.DateTimeField(null=True, blank=True)
+
+        def __str__(self):
+            return f"Driver {self.driver.name} on Bus {self.bus.registration_no}"
+
+
 class CashFlow(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -114,8 +146,8 @@ class Bus(models.Model):
     location = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.registration_no
-
+        # return self.registration_no
+        return f"{self.registration_no} - Driver: {self.driver.name if self.driver else 'Unassigned'}"
 
 class OngoingTrip(models.Model):
     user = models.ForeignKey(

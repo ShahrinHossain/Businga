@@ -1,6 +1,12 @@
 import math
 from decimal import Decimal
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+
+
+
 # from django.contrib.sites
 import requests
 from django.conf import settings
@@ -11,7 +17,8 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
-    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer
+    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer , \
+    DriverSerializer , DriverInfoSerializer, DriverProfile
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -77,17 +84,21 @@ class LoginView(APIView):
 #         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+
+
+
+
+
+
+
+
+
 class LogoutView(APIView):
     # @csrf_exempt
     def get(self, request):
         logout(request)
         return Response({"message": "Logout successful"}, status=200)
-
-
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-
 
 @api_view(['GET', 'POST'])
 def example_view(request):
@@ -106,6 +117,159 @@ class CurrentUserInfoView(APIView):
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+def register_driver(request):
+    """ API to register a new driver """
+    serializer = DriverSerializer(data=request.data)
+    if serializer.is_valid():
+        user = serializer.save()
+        return Response({"message": "Driver registered successfully"}, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DriverLoginView(APIView):
+    """API for driver login authentication."""
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            try:
+                driver = user.driverprofile
+                login(request, user)
+                return Response({
+                    "message": "Login successful",
+                    "driver_id": driver.id,
+                    "username": user.username,
+                    "region": driver.region
+                }, status=status.HTTP_200_OK)
+            except DriverProfile.DoesNotExist:
+                return Response({"error": "User is not a registered driver"}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class DriverLogoutView(APIView):
+    """API for logging out a driver."""
+
+    def get(self, request):
+        logout(request)
+        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
+
+from rest_framework.permissions import IsAuthenticated
+
+@api_view(['GET'])
+def driver_profile(request):
+    """API to retrieve driver details."""
+    if not request.user.is_authenticated:  # Check if user is logged in
+        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    try:
+        driver = request.user.driverprofile  # Get the driver profile
+        serializer = DriverInfoSerializer(request.user)
+        return Response(serializer.data)
+    except AttributeError:  # Handles case where user has no driver profile
+        return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class StartDriverTripView(APIView):
+    """API to start a new trip as a driver."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        driver = request.user.driverprofile
+        bus_id = request.data.get('bus_id')
+        route_id = request.data.get('route_id')
+
+        # Validate bus
+        try:
+            bus = Bus.objects.get(id=bus_id, driver=driver)
+        except Bus.DoesNotExist:
+            return Response({"error": "Bus not found or not assigned to this driver"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Create a new trip
+        trip = DriverTrip.objects.create(
+            driver=driver,
+            bus=bus,
+            route_id=route_id,
+            start_time=request.data.get('start_time')
+        )
+
+        return Response({
+            "message": "Trip started successfully",
+            "trip_id": trip.id
+        }, status=status.HTTP_201_CREATED)
+
+
+class DriverTripListView(APIView):
+    """API to list all trips associated with a driver."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        driver = request.user.driverprofile
+        trips = DriverTrip.objects.filter(driver=driver)
+        trip_data = [
+            {"trip_id": trip.id, "bus": trip.bus.registration_no, "route": trip.route.id}
+            for trip in trips
+        ]
+        return Response({"driver_trips": trip_data}, status=status.HTTP_200_OK)
+
+
+class FinishDriverTripView(APIView):
+    """API to mark a driver's trip as finished."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        driver = request.user.driverprofile
+        trip_id = request.data.get('trip_id')
+
+        # Validate trip
+        try:
+            trip = DriverTrip.objects.get(id=trip_id, driver=driver)
+        except DriverTrip.DoesNotExist:
+            return Response({"error": "Trip not found or not assigned to this driver"},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        trip.end_time = request.data.get('end_time')
+        trip.save()
+
+        return Response({"message": "Trip finished successfully"}, status=status.HTTP_200_OK)
+
+
+class AssignDriverToBusView(APIView):
+    """API to assign a driver to a bus."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        driver = request.user.driverprofile
+        bus_id = request.data.get('bus_id')
+
+        # Validate bus
+        try:
+            bus = Bus.objects.get(id=bus_id)
+        except Bus.DoesNotExist:
+            return Response({"error": "Bus not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Assign the driver
+        bus.driver = driver
+        bus.save()
+
+        return Response({
+            "message": "Driver assigned to bus successfully",
+            "bus": bus.registration_no
+        }, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
 
 
 class AdjustBalanceView(APIView):
