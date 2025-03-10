@@ -7,20 +7,6 @@ from rest_framework.views import APIView
 from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany
 
 
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['username', 'email', 'password']
-#         extra_kwargs = {'password': {'write_only': True}}
-#
-#     def create(self, validated_data):
-#         user = User(
-#             email=validated_data['email'],
-#             username=validated_data['username'],
-#         )
-#         user.set_password(validated_data['password'])
-#         user.save()
-#         return user
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.CharField()  # Add role field
