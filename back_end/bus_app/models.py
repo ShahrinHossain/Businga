@@ -49,6 +49,19 @@ class DriverProfile(models.Model):
         )
         return driver_profile
 
+
+class VerifiedDriverProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="verified_driver")
+    image_1 = models.ImageField(upload_to="verified_drivers/")  # First Image
+    image_2 = models.ImageField(upload_to="verified_drivers/")  # Second Image
+    image_3 = models.ImageField(upload_to="verified_drivers/")  # Third Image
+
+    def __str__(self):
+        return f"Verified Driver: {self.username}"
+
+
+
+
 class DriverTrip(models.Model):
         driver = models.ForeignKey(DriverProfile, on_delete=models.CASCADE)
         bus = models.ForeignKey('Bus', on_delete=models.CASCADE)

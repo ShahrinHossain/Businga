@@ -1,7 +1,7 @@
 import math
 from decimal import Decimal
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -9,6 +9,13 @@ from rest_framework.authtoken.models import Token
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import VerifiedDriverSerializer
 
 
 # from django.contrib.sites
@@ -22,7 +29,8 @@ from django.contrib.auth import authenticate, login, logout
 from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
     ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer , \
-    DriverSerializer , DriverInfoSerializer, DriverProfile
+    DriverSerializer , DriverInfoSerializer, DriverProfile,VerifiedDriverSerializer,\
+    VerifiedDriverInfoSerializer
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -132,6 +140,34 @@ def register_driver(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# def verify_driver(request):
+#     """API to upload verification images for a driver"""
+#
+#     serializer = VerifiedDriverSerializer(data=request.data)
+#
+#     if serializer.is_valid():
+#         serializer.save()
+#         return Response({"message": "Driver verification images uploaded successfully"}, status=status.HTTP_201_CREATED)
+#
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+#
+@api_view(['POST'])
+@parser_classes([MultiPartParser, FormParser])  # ✅ Allows image uploads via form-data
+def verify_driver(request):
+    """API to upload verification images for an independent Verified Driver"""
+
+    serializer = VerifiedDriverSerializer(data=request.data)
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response({"message": "Verified driver images uploaded successfully"}, status=status.HTTP_201_CREATED)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
 class DriverLoginView(APIView):
     """API for driver login authentication."""
 
@@ -184,6 +220,21 @@ def driver_profile(request):
         return Response(serializer.data)
     except AttributeError:  # Handles case where user has no driver profile
         return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+# ------------------- 🚖 API to Retrieve Verified Driver Images -------------------
+@api_view(['GET'])
+def verified_driver_profile(request, username):
+    """API to retrieve a verified driver's images independently"""
+
+    try:
+        verified_driver = VerifiedDriverProfile.objects.get(username=username)  # ✅ Fetch by username
+        serializer = VerifiedDriverSerializer(verified_driver)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except VerifiedDriverProfile.DoesNotExist:
+        return Response({"error": "Verification images not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class StartDriverTripView(APIView):

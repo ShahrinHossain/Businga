@@ -107,6 +107,45 @@ class DriverInfoSerializer(serializers.ModelSerializer):
         return None
 
 
+
+from rest_framework import serializers
+from django.contrib.auth.models import User
+from .models import DriverProfile, VerifiedDriverProfile  # Ensure VerifiedDriverProfile exists in models.py
+
+# ------------------- 🚗 Verified Driver Serializer -------------------
+from rest_framework import serializers
+from .models import VerifiedDriverProfile
+
+# ------------------- 🚗 Serializer for Verified Driver (Independent) -------------------
+class VerifiedDriverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = VerifiedDriverProfile  # ✅ Uses separate table
+        fields = ['username', 'image_1', 'image_2', 'image_3']
+
+    def create(self, validated_data):
+        return VerifiedDriverProfile.objects.create(**validated_data)
+
+
+
+# ------------------- 🚖 Verified Driver Info Serializer -------------------
+class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
+    username = serializers.CharField()  # ✅ Uses `username` directly
+    images = serializers.SerializerMethodField()  # ✅ Returns images in a structured format
+
+    class Meta:
+        model = VerifiedDriverProfile
+        fields = ['username', 'images']
+
+    def get_images(self, obj):
+        return {
+            "image_1": obj.image_1.url if obj.image_1 else None,
+            "image_2": obj.image_2.url if obj.image_2 else None,
+            "image_3": obj.image_3.url if obj.image_3 else None,
+        }
+
+
+
+
 class BalanceAdjustmentSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
