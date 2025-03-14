@@ -179,19 +179,16 @@ class _AccountPageState extends State<AccountPage> {
                                 '─────────── ',
                                 style: TextStyle(color: Colors.black38, fontSize: 18),
                               ),
-                              Expanded( // Added Expanded widget
-                                child: Text(
-                                  '${trip['distance']} km',
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                                  textAlign: TextAlign.center, // Ensure text is centered
-                                ),
+                              Text(
+                                '${trip['distance']} km',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                               ),
                               const Text(
                                 ' ───────────',
                                 style: TextStyle(color: Colors.black38, fontSize: 18),
                               ),
                             ],
-                          )
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             '${trip['fare']} BDT',
