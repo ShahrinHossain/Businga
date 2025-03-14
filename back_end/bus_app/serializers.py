@@ -3,8 +3,9 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.utils.timezone import now
 
-from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany
+from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, Trip
 
 
 # class UserSerializer(serializers.ModelSerializer):
@@ -86,12 +87,18 @@ class ProfileSerializer(serializers.ModelSerializer):
         model = Profile
         fields = ['name', 'contact', 'role', 'balance']
 
+
 class OngoingTripSerializer(serializers.ModelSerializer):
     trip_no = serializers.ReadOnlyField()  # Auto-generated field
 
     class Meta:
         model = OngoingTrip
         fields = ['user', 'bus_id', 'from_id', 'trip_no', 'route_id', 'arrival_time']
+
+    def create(self, validated_data):
+        validated_data['arrival_time'] = now()  # Set arrival_time to the current system time
+        return super().create(validated_data)
+
 
 class BusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -108,3 +115,13 @@ class BusCompanySerializer(serializers.ModelSerializer):
         model = BusCompany
         fields = ['id', 'name', 'owner_id', 'employee_count', 'income']
 
+from rest_framework import serializers
+from .models import Trip
+
+class TripSerializer(serializers.ModelSerializer):
+    from_stoppage = serializers.CharField(source='from_id.name', read_only=True)
+    to_stoppage = serializers.CharField(source='to_id.name', read_only=True)
+
+    class Meta:
+        model = Trip
+        fields = ('id', 'bus', 'from_stoppage', 'to_stoppage', 'distance', 'fare', 'arrival_time', 'trip_no', 'timestamp')

@@ -3,7 +3,7 @@ from dj_rest_auth.views import LoginView
 from .serializers import BalanceAdjustmentSerializer
 from .views import RegisterView, LogoutView, example_view, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
-    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView
+    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, LastTripsView
 from . import views
 
 urlpatterns = [
@@ -23,4 +23,6 @@ urlpatterns = [
     path('add-bus/', AddBusView.as_view(), name='add-bus'),
     path('add-route/', AddRouteView.as_view(), name='add-route'),
     path('bus-companies/', AddBusCompanyView.as_view(), name='add_bus_company'),
+    path('last-trips/', LastTripsView.as_view(), name='last_trips'),
+
 ]

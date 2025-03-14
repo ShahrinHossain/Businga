@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
-    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer
+    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, TripSerializer
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -185,36 +185,6 @@ class StoppageListView(APIView):
         stoppages = Stoppage.objects.all()
         serializer = StoppageSerializer(stoppages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# @api_view(['GET', 'PUT'])
-# def update_profile_view(request):
-#     if request.method == 'GET':
-#         data = {"message": "Hello from Django"}
-#         return Response(data, status=status.HTTP_200_OK)
-#
-#     elif request.method == 'PUT':
-#         print(f"Request User: {request.user}")
-#         print(f"Is Authenticated: {request.user.is_authenticated}")
-#         print(f"Request Data: {request.data}")
-#
-#         if not request.user.is_authenticated:
-#             return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-#
-#         try:
-#             profile = Profile.objects.get(user=request.user)
-#             print("Profile found:", profile)
-#         except Profile.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#         serializer = ProfileSerializer(profile, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#         print("Serializer Errors:", serializer.errors)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
 
 
 class UpdateProfileView(APIView):
@@ -544,3 +514,12 @@ class AddBusCompanyView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LastTripsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        trips = Trip.objects.filter(user=request.user).order_by('-timestamp')[:10]
+        serializer = TripSerializer(trips, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
