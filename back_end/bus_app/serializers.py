@@ -57,52 +57,99 @@ class UserInfoSerializer(serializers.ModelSerializer):
             }
         return None
 
+# class DriverSerializer(serializers.ModelSerializer):
+#     drivername = serializers.CharField()  # Added drivername field
+#     date_of_birth = serializers.DateField()
+#     region = serializers.CharField()
+#     company_id = serializers.CharField()  # Added company_id field
+#     on_duty = serializers.BooleanField(default=False)  # Added on_duty field
+#
+#     class Meta:
+#         model = User
+#         fields = ['drivername', 'email', 'password', 'date_of_birth', 'region', 'company_id', 'on_duty']
+#         extra_kwargs = {'password': {'write_only': True}}
+#
+#     def create(self, validated_data):
+#         # Extract additional fields
+#         drivername = validated_data.pop('drivername')
+#         date_of_birth = validated_data.pop('date_of_birth')
+#         region = validated_data.pop('region')
+#         company_id = validated_data.pop('company_id')
+#         on_duty = validated_data.pop('on_duty', False)
+#
+#         # Create user
+#         user = User(
+#             email=validated_data['email'],
+#             username=drivername,  # Set username to drivername
+#         )
+#         user.set_password(validated_data['password'])
+#         user.save()
+#
+#         # Create DriverProfile and assign additional fields
+#         DriverProfile.create_driver(user, date_of_birth, region, company_id, user.email, on_duty)
+#
+#         return user
+
 class DriverSerializer(serializers.ModelSerializer):
-    date_of_birth = serializers.DateField()  # Add date of birth field
-    region = serializers.CharField()  # Add region field
+    drivername = serializers.CharField()  # Driver's name (maps to username)
+    date_of_birth = serializers.DateField()
+    region = serializers.CharField()
+    company_id = serializers.CharField()
+    on_duty = serializers.BooleanField(default=False)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'date_of_birth', 'region']
-        extra_kwargs = {'password': {'write_only': True}}  # Hide password in responses
+        fields = ['drivername', 'email', 'password', 'date_of_birth', 'region', 'company_id', 'on_duty']
+        extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         # Extract additional fields
+        drivername = validated_data.pop('drivername')
         date_of_birth = validated_data.pop('date_of_birth')
         region = validated_data.pop('region')
+        company_id = validated_data.pop('company_id')
+        on_duty = validated_data.pop('on_duty', False)
 
-        # Create user
-        user = User(
+        # ✅ Correct User creation with hashed password
+        user = User.objects.create_user(
+            username=drivername,  # Maps drivername to username
             email=validated_data['email'],
-            username=validated_data['username'],
+            password=validated_data['password']  # Password is automatically hashed
         )
-        user.set_password(validated_data['password'])
-        user.save()
 
-        # Create DriverProfile and assign additional fields
-        DriverProfile.create_driver(user, date_of_birth, region)
+        # ✅ Call create_driver() from DriverProfile model
+        DriverProfile.create_driver(
+            user=user,
+            date_of_birth=date_of_birth,
+            region=region,
+            company_id=company_id,
+            email=user.email,
+            on_duty=on_duty
+        )
 
         return user
 
-
 class DriverInfoSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField()  # Custom field for full name
+    drivername = serializers.SerializerMethodField()  # Updated field for driver's name
     profile = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'name', 'profile']
+        fields = ['id', 'drivername', 'email', 'profile']
 
-    def get_name(self, obj):
+    def get_drivername(self, obj):
         if hasattr(obj, 'driverprofile'):
-            return obj.driverprofile.name
+            return obj.driverprofile.drivername
         return None
 
     def get_profile(self, obj):
         if hasattr(obj, 'driverprofile'):
             return {
+                "email": obj.email,  # Include email in profile
                 "date_of_birth": obj.driverprofile.date_of_birth,
-                "region": obj.driverprofile.region
+                "region": obj.driverprofile.region,
+                "company_id": obj.driverprofile.company_id,
+                "on_duty": obj.driverprofile.on_duty
             }
         return None
 

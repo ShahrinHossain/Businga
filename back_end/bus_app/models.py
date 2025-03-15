@@ -30,22 +30,29 @@ class Profile(models.Model):
 
 
 class DriverProfile(models.Model):
+    id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driverprofile')
-    name = models.CharField(max_length=100)
+    drivername = models.CharField(max_length=100)  # Changed from 'username'
+    email = models.EmailField(unique=True)  # Added email field
+    company_id = models.CharField(max_length=50)  # Added company ID
     date_of_birth = models.DateField()
     region = models.CharField(max_length=100)
+    on_duty = models.BooleanField(default=False)  # Added boolean field for duty status
 
     def __str__(self):
-        return f"Driver {self.name} from {self.region}"
+        return f"Driver {self.drivername} from {self.region}"
 
     @classmethod
-    def create_driver(cls, user, date_of_birth, region):
+    def create_driver(cls, user, date_of_birth, region, company_id, email, on_duty=False):
         """Creates a new driver profile linked to a user."""
         driver_profile = cls.objects.create(
             user=user,
-            name=user.username,  # Default name is the username
+            drivername=user.username,  # Default driver name is the username
+            email=email,
+            company_id=company_id,
             date_of_birth=date_of_birth,
-            region=region
+            region=region,
+            on_duty=on_duty
         )
         return driver_profile
 

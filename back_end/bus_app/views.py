@@ -7,6 +7,8 @@ from rest_framework import status
 
 from rest_framework.authtoken.models import Token
 
+
+
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
@@ -130,14 +132,45 @@ class CurrentUserInfoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
+
+###### maybeh the right one here
 @api_view(['POST'])
 def register_driver(request):
     """ API to register a new driver """
-    serializer = DriverSerializer(data=request.data)
+    # Ensure on_duty has a default value if not provided
+    request_data = request.data.copy()
+    request_data.setdefault('on_duty', False)
+
+    serializer = DriverSerializer(data=request_data)
     if serializer.is_valid():
         user = serializer.save()
         return Response({"message": "Driver registered successfully"}, status=status.HTTP_201_CREATED)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def driver_profile(request):
+    """API to retrieve driver details when logged in."""
+
+    try:
+        # Ensure the user has a driver profile
+        if hasattr(request.user, 'driverprofile'):
+            serializer = DriverInfoSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
+
+
 
 
 # def verify_driver(request):
@@ -151,7 +184,7 @@ def register_driver(request):
 #
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-#
+
 @api_view(['POST'])
 @parser_classes([MultiPartParser, FormParser])  # ✅ Allows image uploads via form-data
 def verify_driver(request):
@@ -167,34 +200,73 @@ def verify_driver(request):
 
 
 
+#### without tokenization problem
+# class DriverLoginView(APIView):
+#     """ API for driver login using drivername and password """
+#
+#     def post(self, request):
+#         drivername = request.data.get('drivername')
+#         password = request.data.get('password')
+#
+#         if not drivername or not password:
+#             return Response({"error": "Drivername and password are required"}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         # Retrieve the user based on drivername
+#         try:
+#             user = User.objects.get(username=drivername)
+#         except User.DoesNotExist:
+#             return Response({"error": "Driver not found"}, status=status.HTTP_404_NOT_FOUND)
+#
+#         # Authenticate the user using drivername
+#         user = authenticate(username=drivername, password=password)
+#
+#         if user is not None:
+#             # Check if the user has a driver profile
+#             if hasattr(user, 'driverprofile'):
+#                 serializer = DriverInfoSerializer(user)
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+#         else:
+#             return Response({"error": "Invalid drivername or password"}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class DriverLoginView(APIView):
-    """API for driver login authentication."""
+    """ API for driver login using drivername and password """
 
     def post(self, request):
-        username = request.data.get('username')
+        drivername = request.data.get('drivername')
         password = request.data.get('password')
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            try:
-                driver = user.driverprofile
-                login(request, user)
+        if not drivername or not password:
+            return Response({"error": "Drivername and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
+        # Retrieve user by drivername
+
+        try:
+            user = User.objects.get(username=drivername)
+        except User.DoesNotExist:
+            return Response({"error": "Driver not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Authenticate user
+        user = authenticate(username=drivername, password=password)
+
+        if user is not None:
+            # Check if the user has a driver profile
+            if hasattr(user, 'driverprofile'):
+                # Generate or retrieve authentication token
                 token, created = Token.objects.get_or_create(user=user)
 
+                # Return driver profile and authentication token
+                serializer = DriverInfoSerializer(user)
                 return Response({
-                    "message": "Login successful",
-                    "driver_id": driver.id,
-                    "username": user.username,
-                    "region": driver.region,
-                    "token": token.key  # Include token in response
-
+                    "token": token.key,
+                    "driver_profile": serializer.data
                 }, status=status.HTTP_200_OK)
-            except DriverProfile.DoesNotExist:
-                return Response({"error": "User is not a registered driver"}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"error": "Invalid drivername or password"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class DriverLogoutView(APIView):
@@ -206,20 +278,43 @@ class DriverLogoutView(APIView):
 
 
 from rest_framework.permissions import IsAuthenticated
+#### auth one driver profile
+
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def driver_profile(request):
+#     """API to retrieve driver details."""
+#     if not request.user.is_authenticated:  # Check if user is logged in
+#         return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+#
+#     try:
+#         driver = request.user.driverprofile  # Get the driver profile
+#         serializer = DriverInfoSerializer(request.user)
+#         return Response(serializer.data)
+#     except AttributeError:  # Handles case where user has no driver profile
+#         return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def driver_profile(request):
-    """API to retrieve driver details."""
-    if not request.user.is_authenticated:  # Check if user is logged in
-        return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
+    """API to retrieve driver details when logged in."""
 
     try:
-        driver = request.user.driverprofile  # Get the driver profile
-        serializer = DriverInfoSerializer(request.user)
-        return Response(serializer.data)
-    except AttributeError:  # Handles case where user has no driver profile
-        return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+        # Ensure the user has a driver profile
+        if hasattr(request.user, 'driverprofile'):
+            serializer = DriverInfoSerializer(request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+
+
+
 
 
 # ------------------- 🚖 API to Retrieve Verified Driver Images -------------------
