@@ -64,9 +64,7 @@ class VerifiedDriverProfile(models.Model):
     image_3 = models.ImageField(upload_to="verified_drivers/")  # Third Image
 
     def __str__(self):
-        return f"Verified Driver: {self.username}"
-
-
+        return f"Verified Driver: {self.user.username}"  # ✅ Fixed incorrect attribute
 
 
 class DriverTrip(models.Model):

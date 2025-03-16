@@ -5,6 +5,7 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework import status
 
+
 # from rest_framework.authtoken.models import Token
 
 
@@ -25,6 +26,7 @@ import requests
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
@@ -32,7 +34,7 @@ from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
     ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer , \
     DriverSerializer , DriverInfoSerializer, DriverProfile,VerifiedDriverSerializer,\
-    VerifiedDriverInfoSerializer
+    VerifiedDriverInfoSerializer,VerifiedDriverProfile
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -186,11 +188,21 @@ def driver_profile(request):
 
 
 @api_view(['POST'])
-@parser_classes([MultiPartParser, FormParser])  # ✅ Allows image uploads via form-data
+@parser_classes([MultiPartParser, FormParser])  # ✅ Allows form-data uploads (image files)
 def verify_driver(request):
     """API to upload verification images for an independent Verified Driver"""
 
-    serializer = VerifiedDriverSerializer(data=request.data)
+    user_id = request.data.get('user')  # Extract user ID from request
+    try:
+        user = User.objects.get(id=user_id)  # Get User instance
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # ✅ Convert request.data to mutable & assign user instance
+    request_data = request.data.copy()
+    request_data['user'] = user.id
+
+    serializer = VerifiedDriverSerializer(data=request_data)  # ✅ No 'files' argument needed
 
     if serializer.is_valid():
         serializer.save()
@@ -245,7 +257,7 @@ class DriverLoginView(APIView):
         # Retrieve user by drivername
         try:
             user = User.objects.get(username=drivername)
-        except User.DoesNotExist:
+        except User.DoesNotExist:  # Corrected this line
             return Response({"error": "Driver not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Authenticate user
@@ -288,23 +300,44 @@ from rest_framework.permissions import IsAuthenticated
 #     except AttributeError:  # Handles case where user has no driver profile
 #         return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
 
+
+
+
+## worked by using user id on the url
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def driver_profile(request):
-    """API to retrieve driver details when logged in."""
-
+def get_driver_images(request, user_id):
+    """API to retrieve driver verification images by user ID"""
     try:
-        # Ensure the user has a driver profile
-        if hasattr(request.user, 'driverprofile'):
-            serializer = DriverInfoSerializer(request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # Get the Verified Driver Profile
+        driver_profile = VerifiedDriverProfile.objects.get(user__id=user_id)
+    except VerifiedDriverProfile.DoesNotExist:
+        return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    # Serialize and return driver images
+    serializer = VerifiedDriverInfoSerializer(driver_profile)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
+class VerifiedDriverProfileView(APIView):
+    """API to retrieve verified driver profile images by providing user_id in JSON request"""
+
+    def post(self, request):
+        """Retrieve driver profile images using JSON input with user_id"""
+        user_id = request.data.get("user_id")  # ✅ Extract user_id from JSON request
+
+        if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Get the Verified Driver Profile
+            driver_profile = VerifiedDriverProfile.objects.get(user__id=user_id)
+        except VerifiedDriverProfile.DoesNotExist:
+            return Response({"error": "Verified driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize and return driver images
+        serializer = VerifiedDriverInfoSerializer(driver_profile)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 

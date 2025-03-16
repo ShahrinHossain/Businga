@@ -54,6 +54,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 "role": obj.profile.role,
                 "balance": obj.profile.balance,
                 "in_route": obj.profile.in_route
+
             }
         return None
 
@@ -166,17 +167,16 @@ from .models import VerifiedDriverProfile
 # ------------------- 🚗 Serializer for Verified Driver (Independent) -------------------
 class VerifiedDriverSerializer(serializers.ModelSerializer):
     class Meta:
-        model = VerifiedDriverProfile  # ✅ Uses separate table
-        fields = ['username', 'image_1', 'image_2', 'image_3']
+        model = VerifiedDriverProfile
+        fields = ['user', 'image_1', 'image_2', 'image_3']
 
     def create(self, validated_data):
-        return VerifiedDriverProfile.objects.create(**validated_data)
-
-
+        user = validated_data.pop('user')  # ✅ Extract user object
+        return VerifiedDriverProfile.objects.create(user=user, **validated_data)
 
 # ------------------- 🚖 Verified Driver Info Serializer -------------------
 class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()  # ✅ Uses `username` directly
+    username = serializers.CharField(source="user.username")  # ✅ Access `user.username`
     images = serializers.SerializerMethodField()  # ✅ Returns images in a structured format
 
     class Meta:
@@ -189,7 +189,6 @@ class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
             "image_2": obj.image_2.url if obj.image_2 else None,
             "image_3": obj.image_3.url if obj.image_3 else None,
         }
-
 
 
 
