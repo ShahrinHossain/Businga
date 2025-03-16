@@ -107,6 +107,14 @@ class CurrentUserInfoView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
+class CurrentOwnerInfoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = BusCompanySerializer(request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
+
 
 class AdjustBalanceView(APIView):
 
@@ -544,3 +552,22 @@ class AddBusCompanyView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# class BusCompanyView(APIView):
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request):
+#         bus_company = BusCompany.objects.get(owner_id=request.user.id)  # Filter by logged-in user ID
+#         serializer = BusCompanySerializer(bus_company, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class BusCompanyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            bus_company = BusCompany.objects.get(owner_id=request.user.id)
+            serializer = BusCompanySerializer(bus_company)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except BusCompany.DoesNotExist:
+            return Response({"error": "Not a company owner!"}, status=status.HTTP_404_NOT_FOUND)

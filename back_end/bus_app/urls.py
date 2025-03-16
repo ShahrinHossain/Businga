@@ -1,7 +1,7 @@
 from django.urls import path
 from dj_rest_auth.views import LoginView
 from .serializers import BalanceAdjustmentSerializer
-from .views import RegisterView, LogoutView, example_view, CurrentUserInfoView, \
+from .views import RegisterView, LogoutView, example_view, CurrentUserInfoView, BusCompanyView,\
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
     AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView
 from . import views
@@ -12,6 +12,7 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('current/', CurrentUserInfoView.as_view(), name='current'),
+    path('current-owner/', BusCompanyView.as_view(), name='current-owner'),
     path('example/', example_view, name='example-view'),
     path('update-balance/', AdjustBalanceView.as_view(), name='update-balance'),
     path('make-payment/', AddToBalanceView.as_view(), name='make-payment'),
@@ -22,5 +23,5 @@ urlpatterns = [
     path('finish-trip/', FinishTripView.as_view(), name='finish-trip'),
     path('add-bus/', AddBusView.as_view(), name='add-bus'),
     path('add-route/', AddRouteView.as_view(), name='add-route'),
-    path('bus-companies/', AddBusCompanyView.as_view(), name='add_bus_company'),
+    path('bus-companies/', AddBusCompanyView.as_view(), name='add-bus-company'),
 ]

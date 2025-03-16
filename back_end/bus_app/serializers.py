@@ -47,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
 
         return user
 
+
 class UserInfoSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()  # Custom field for full name from Profile
     profile = serializers.SerializerMethodField()
