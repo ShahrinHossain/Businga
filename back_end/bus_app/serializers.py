@@ -4,34 +4,37 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverTrip, DriverProfile
-
+from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverProfile, Photo
 
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.CharField()  # Add role field
+    role = serializers.CharField()
+    company_id = serializers.CharField(required=False)
+    license_no = serializers.CharField(required=False)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role']  # Add role to fields
+        fields = ['username', 'email', 'password', 'role', 'company_id', 'license_no']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Extract role
-        role = validated_data.pop('role')  # Remove role from validated data
+        role = validated_data.pop('role')
 
-        # Create user
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username'],
+        user = User.objects.create_user(
+            email=validated_data.pop('email'),
+            username=validated_data.pop('username'),
+            password=validated_data.pop('password')
         )
-        user.set_password(validated_data['password'])
-        user.save()
 
-        # Create Profile and assign the role
-        Profile.create_profile(user, role)
+        if role == 'driver':
+            DriverProfile.create_driver(user, **validated_data)
+        else:
+            Profile.create_profile(user, role)
 
         return user
+
+
+
 
 class UserInfoSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()  # Custom field for full name from Profile
@@ -57,181 +60,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
 
             }
         return None
-
-# class DriverSerializer(serializers.ModelSerializer):
-#     drivername = serializers.CharField()  # Added drivername field
-#     date_of_birth = serializers.DateField()
-#     region = serializers.CharField()
-#     company_id = serializers.CharField()  # Added company_id field
-#     on_duty = serializers.BooleanField(default=False)  # Added on_duty field
-#
-#     class Meta:
-#         model = User
-#         fields = ['drivername', 'email', 'password', 'date_of_birth', 'region', 'company_id', 'on_duty']
-#         extra_kwargs = {'password': {'write_only': True}}
-#
-#     def create(self, validated_data):
-#         # Extract additional fields
-#         drivername = validated_data.pop('drivername')
-#         date_of_birth = validated_data.pop('date_of_birth')
-#         region = validated_data.pop('region')
-#         company_id = validated_data.pop('company_id')
-#         on_duty = validated_data.pop('on_duty', False)
-#
-#         # Create user
-#         user = User(
-#             email=validated_data['email'],
-#             username=drivername,  # Set username to drivername
-#         )
-#         user.set_password(validated_data['password'])
-#         user.save()
-#
-#         # Create DriverProfile and assign additional fields
-#         DriverProfile.create_driver(user, date_of_birth, region, company_id, user.email, on_duty)
-#
-#         return user
-
-class DriverSerializer(serializers.ModelSerializer):
-    drivername = serializers.CharField()  # Driver's name (maps to username)
-    date_of_birth = serializers.DateField()
-    region = serializers.CharField()
-    company_id = serializers.CharField()
-    on_duty = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = User
-        fields = ['drivername', 'email', 'password', 'date_of_birth', 'region', 'company_id', 'on_duty']
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        # Extract additional fields
-        drivername = validated_data.pop('drivername')
-        date_of_birth = validated_data.pop('date_of_birth')
-        region = validated_data.pop('region')
-        company_id = validated_data.pop('company_id')
-        on_duty = validated_data.pop('on_duty', False)
-
-        # ✅ Correct User creation with hashed password
-        user = User.objects.create_user(
-            username=drivername,  # Maps drivername to username
-            email=validated_data['email'],
-            password=validated_data['password']  # Password is automatically hashed
-        )
-
-        # ✅ Call create_driver() from DriverProfile model
-        DriverProfile.create_driver(
-            user=user,
-            date_of_birth=date_of_birth,
-            region=region,
-            company_id=company_id,
-            email=user.email,
-            on_duty=on_duty
-        )
-
-        return user
-
-
-
-class DriverInfoSerializer(serializers.ModelSerializer):
-    drivername = serializers.SerializerMethodField()  # Updated field for driver's name
-    profile = serializers.SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ['id', 'drivername', 'email', 'profile']
-
-    def get_drivername(self, obj):
-        if hasattr(obj, 'driverprofile'):
-            return obj.driverprofile.drivername
-        return None
-
-    def get_profile(self, obj):
-        if hasattr(obj, 'driverprofile'):
-            return {
-                "email": obj.email,  # Include email in profile
-                "date_of_birth": obj.driverprofile.date_of_birth,
-                "region": obj.driverprofile.region,
-                "company_id": obj.driverprofile.company_id,
-                "on_duty": obj.driverprofile.on_duty
-            }
-        return None
-
-
-
-from rest_framework import serializers
-from django.contrib.auth.models import User
-from .models import DriverProfile, VerifiedDriverProfile  # Ensure VerifiedDriverProfile exists in models.py
-
-# ------------------- 🚗 Verified Driver Serializer -------------------
-from rest_framework import serializers
-from .models import VerifiedDriverProfile
-
-# ------------------- 🚗 Serializer for Verified Driver (Independent) -------------------
-import base64
-
-# class VerifiedDriverSerializer(serializers.ModelSerializer):
-#     image_1 = serializers.CharField(required=False)  # ✅ Accept Base64 input
-#     image_2 = serializers.CharField(required=False)
-#     image_3 = serializers.CharField(required=False)
-#
-#     class Meta:
-#         model = VerifiedDriverProfile
-#         fields = ['user', 'image_1', 'image_2', 'image_3']
-#
-# # ------------------- 🚖 Serializer for Retrieving Data -------------------
-# class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
-#     username = serializers.CharField(source="user.username")
-#     images = serializers.SerializerMethodField()
-#
-#     class Meta:
-#         model = VerifiedDriverProfile
-#         fields = ['username', 'images']
-#
-#     def get_images(self, obj):
-#         return {
-#             "image_1": obj.image_1 if obj.image_1 else None,
-#             "image_2": obj.image_2 if obj.image_2 else None,
-#             "image_3": obj.image_3 if obj.image_3 else None,
-#         }
-#
-
-
-
-
-
-
-class VerifiedDriverSerializer(serializers.ModelSerializer):
-    user = serializers.CharField()  # ✅ Accept `user_id` as a normal text field
-    image_1 = serializers.CharField(required=False)  # ✅ Accept Base64 input
-    image_2 = serializers.CharField(required=False)
-    image_3 = serializers.CharField(required=False)
-
-    class Meta:
-        model = VerifiedDriverProfile
-        fields = ['user', 'image_1', 'image_2', 'image_3']
-
-# ------------------- 🚖 Serializer for Retrieving Data -------------------
-class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
-    images = serializers.SerializerMethodField()
-
-    class Meta:
-        model = VerifiedDriverProfile
-        fields = ['user', 'images']  # ✅ Use 'user' instead of 'username'
-
-    def get_images(self, obj):
-        return {
-            "image_1": obj.image_1 if obj.image_1 else None,
-            "image_2": obj.image_2 if obj.image_2 else None,
-            "image_3": obj.image_3 if obj.image_3 else None,
-        }
-
-
-
-
-
-
-
-
 
 class BalanceAdjustmentSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -269,3 +97,8 @@ class BusCompanySerializer(serializers.ModelSerializer):
         model = BusCompany
         fields = ['id', 'name', 'owner_id', 'employee_count', 'income']
 
+
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photo
+        fields = ['id', 'user', 'type', 'b64_string']

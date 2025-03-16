@@ -18,7 +18,6 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import VerifiedDriverSerializer
 
 
 # from django.contrib.sites
@@ -30,83 +29,47 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
+from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
-    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer , \
-    DriverSerializer , DriverInfoSerializer, DriverProfile,VerifiedDriverSerializer,\
-    VerifiedDriverInfoSerializer,VerifiedDriverProfile
+    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, \
+    DriverProfile, PhotoSerializer
+
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserSerializer
+from rest_framework.views import APIView
 
-
-# Create your views here.
 
 
 def all_users(request):
     return HttpResponse('Returning all users')
 
 
-# class RegisterView(APIView):
-#     def post(self, request):
-#         serializer = UserSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
+    authentication_classes = []  # No authentication required for registration
+    permission_classes = []  # Allow all users, even unauthenticated
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            user = serializer.save()  # Save the new user instance
 
-        # Log serializer errors to see what went wrong
-        print(serializer.errors)  # This will print the validation errors to the console
+            # Generate JWT tokens after successful registration
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({
+                "message": "User registered successfully",
+                "access": access_token,  # Corrected variable name
+                "refresh_token": str(refresh),
+            }, status=status.HTTP_201_CREATED)
+
+        print(serializer.errors)  # Log errors for debugging
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class LoginView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        print(username)
-        print(password)
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-# class LoginView(APIView):
-#     def post(self, request):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-#         print(username)
-#         print(password)
-#         user = authenticate(request, username=username, password=password)
-#         if user is not None:
-#             login(request, user)
-#             try:
-#                 # Fetch the profile associated with the user
-#                 profile = Profile.objects.get(user=user)
-#                 role = profile.role  # Get the role from the profile
-#                 return Response({
-#                     "message": "Login successful",
-#                     "role": role,  # Include the role in the response
-#                     "access": 'some_jwt_token'  # Your JWT token logic here
-#                 }, status=status.HTTP_200_OK)
-#             except Profile.DoesNotExist:
-#                 return Response({"error": "Profile not found"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-
-
-
-
-
-
-
 
 
 
@@ -116,15 +79,6 @@ class LogoutView(APIView):
         logout(request)
         return Response({"message": "Logout successful"}, status=200)
 
-@api_view(['GET', 'POST'])
-def example_view(request):
-    if request.method == 'GET':
-        data = {"message": "Hello from Django"}
-        return Response(data, status=status.HTTP_200_OK)
-    elif request.method == 'POST':
-        received_data = request.data
-        return Response({"received_data": received_data}, status=status.HTTP_201_CREATED)
-
 
 class CurrentUserInfoView(APIView):
     permission_classes = [IsAuthenticated]
@@ -132,407 +86,6 @@ class CurrentUserInfoView(APIView):
     def get(self, request):
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-###### maybeh the right one here
-@api_view(['POST'])
-def register_driver(request):
-    """ API to register a new driver """
-    # Ensure on_duty has a default value if not provided
-    request_data = request.data.copy()
-    request_data.setdefault('on_duty', False)
-
-    serializer = DriverSerializer(data=request_data)
-    if serializer.is_valid():
-        user = serializer.save()
-        return Response({"message": "Driver registered successfully"}, status=status.HTTP_201_CREATED)
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(['GET'])
-def driver_profile(request):
-    """API to retrieve driver details when logged in."""
-
-    try:
-        # Ensure the user has a driver profile
-        if hasattr(request.user, 'driverprofile'):
-            serializer = DriverInfoSerializer(request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        else:
-            return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-
-
-
-
-
-
-
-
-
-# def verify_driver(request):
-#     """API to upload verification images for a driver"""
-#
-#     serializer = VerifiedDriverSerializer(data=request.data)
-#
-#     if serializer.is_valid():
-#         serializer.save()
-#         return Response({"message": "Driver verification images uploaded successfully"}, status=status.HTTP_201_CREATED)
-#
-#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['POST'])
-@permission_classes([AllowAny])  # ✅ Allows public access (No authentication needed)
-@parser_classes([MultiPartParser, FormParser])  # ✅ Handles file uploads
-def verify_driver(request):
-    """API to register a driver using a given user_id and upload images"""
-
-    # ✅ Extract `user_id` (REQUIRED)
-    user_id = request.data.get('user')
-    if not user_id:
-        return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-    # ✅ Convert uploaded images to Base64 (if provided)
-    def encode_image(image):
-        return base64.b64encode(image.read()).decode('utf-8') if image else None
-
-    image_1 = encode_image(request.FILES.get('image_1'))
-    image_2 = encode_image(request.FILES.get('image_2'))
-    image_3 = encode_image(request.FILES.get('image_3'))
-
-    # ✅ Directly create a new VerifiedDriverProfile with user_id
-    profile = VerifiedDriverProfile.objects.create(
-        user_id=user_id,  # ✅ Accept user_id as input without checking
-        image_1=image_1,
-        image_2=image_2,
-        image_3=image_3
-    )
-
-    return Response({
-        "message": "Verified driver registered successfully",
-        "user_id": user_id
-    }, status=status.HTTP_201_CREATED)
-
-class VerifiedDriverLogin1(APIView):
-    """API to upload driver verification images and store them as Base64 in MySQL"""
-
-    def post(self, request):
-        """Uploads driver images as Base64 and saves them to MySQL"""
-        user_id = request.data.get("user_id")
-        image_1 = request.data.get("image_1")
-        image_2 = request.data.get("image_2")
-        image_3 = request.data.get("image_3")
-
-        if not user_id:
-            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            user = User.objects.get(id=user_id)
-        except User.DoesNotExist:
-            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Store images in MySQL as Base64 strings
-        profile, created = VerifiedDriverProfile.objects.get_or_create(user=user)
-        if image_1:
-            profile.image_1 = image_1  # Base64 string
-        if image_2:
-            profile.image_2 = image_2  # Base64 string
-        if image_3:
-            profile.image_3 = image_3  # Base64 string
-
-        profile.save()
-        return Response({"message": "Driver images uploaded successfully"}, status=status.HTTP_201_CREATED)
-
-
-
-
-
-class VerifiedDriverView1(APIView):
-    """API to retrieve driver verification images stored in MySQL"""
-
-    def post(self, request):
-        """Retrieve driver profile images as Base64 from MySQL using JSON input"""
-        user_id = request.data.get("user_id")
-
-        if not user_id:
-            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            driver_profile = VerifiedDriverProfile.objects.get(user__id=user_id)
-        except VerifiedDriverProfile.DoesNotExist:
-            return Response({"error": "Verified driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Serialize and return driver images
-        serializer = VerifiedDriverInfoSerializer(driver_profile)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#### without tokenization problem
-# class DriverLoginView(APIView):
-#     """ API for driver login using drivername and password """
-#
-#     def post(self, request):
-#         drivername = request.data.get('drivername')
-#         password = request.data.get('password')
-#
-#         if not drivername or not password:
-#             return Response({"error": "Drivername and password are required"}, status=status.HTTP_400_BAD_REQUEST)
-#
-#         # Retrieve the user based on drivername
-#         try:
-#             user = User.objects.get(username=drivername)
-#         except User.DoesNotExist:
-#             return Response({"error": "Driver not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#         # Authenticate the user using drivername
-#         user = authenticate(username=drivername, password=password)
-#
-#         if user is not None:
-#             # Check if the user has a driver profile
-#             if hasattr(user, 'driverprofile'):
-#                 serializer = DriverInfoSerializer(user)
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-#             else:
-#                 return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-#         else:
-#             return Response({"error": "Invalid drivername or password"}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-
-class DriverLoginView(APIView):
-    """ API for driver login using drivername and password (without authentication token) """
-
-    def post(self, request):
-        drivername = request.data.get('drivername')
-        password = request.data.get('password')
-
-        if not drivername or not password:
-            return Response({"error": "Drivername and password are required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Retrieve user by drivername
-        try:
-            user = User.objects.get(username=drivername)
-        except User.DoesNotExist:  # Corrected this line
-            return Response({"error": "Driver not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Authenticate user
-        user = authenticate(username=drivername, password=password)
-
-        if user is not None:
-            # Check if the user has a driver profile
-            if hasattr(user, 'driverprofile'):
-
-                serializer = DriverInfoSerializer(user)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({"error": "Invalid drivername or password"}, status=status.HTTP_401_UNAUTHORIZED)
-
-
-class DriverLogoutView(APIView):
-    """API for logging out a driver."""
-
-    def get(self, request):
-        logout(request)
-        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
-
-
-from rest_framework.permissions import IsAuthenticated
-#### auth one driver profile
-
-# @api_view(['GET'])
-# @permission_classes([IsAuthenticated])
-# def driver_profile(request):
-#     """API to retrieve driver details."""
-#     if not request.user.is_authenticated:  # Check if user is logged in
-#         return Response({"error": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
-#
-#     try:
-#         driver = request.user.driverprofile  # Get the driver profile
-#         serializer = DriverInfoSerializer(request.user)
-#         return Response(serializer.data)
-#     except AttributeError:  # Handles case where user has no driver profile
-#         return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-
-## worked by using user id on the url
-@api_view(['GET'])
-def get_driver_images(request, user_id):
-    """API to retrieve driver verification images by user ID"""
-    try:
-        # Get the Verified Driver Profile
-        driver_profile = VerifiedDriverProfile.objects.get(user__id=user_id)
-    except VerifiedDriverProfile.DoesNotExist:
-        return Response({"error": "Driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    # Serialize and return driver images
-    serializer = VerifiedDriverInfoSerializer(driver_profile)
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-class VerifiedDriverProfileView(APIView):
-    """API to retrieve verified driver profile images by providing user_id in JSON request"""
-
-    def post(self, request):
-        """Retrieve driver profile images using JSON input with user_id"""
-        user_id = request.data.get("user_id")  # ✅ Extract user_id from JSON request
-
-        if not user_id:
-            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            # Get the Verified Driver Profile
-            driver_profile = VerifiedDriverProfile.objects.get(user__id=user_id)
-        except VerifiedDriverProfile.DoesNotExist:
-            return Response({"error": "Verified driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Serialize and return driver images
-        serializer = VerifiedDriverInfoSerializer(driver_profile)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-
-
-
-
-# ------------------- 🚖 API to Retrieve Verified Driver Images -------------------
-@api_view(['GET'])
-def verified_driver_profile(request, username):
-    """API to retrieve a verified driver's images independently"""
-
-    try:
-        verified_driver = VerifiedDriverProfile.objects.get(username=username)  # ✅ Fetch by username
-        serializer = VerifiedDriverSerializer(verified_driver)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    except VerifiedDriverProfile.DoesNotExist:
-        return Response({"error": "Verification images not found"}, status=status.HTTP_404_NOT_FOUND)
-
-
-
-class StartDriverTripView(APIView):
-    """API to start a new trip as a driver."""
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        driver = request.user.driverprofile
-        bus_id = request.data.get('bus_id')
-        route_id = request.data.get('route_id')
-
-        # Validate bus
-        try:
-            bus = Bus.objects.get(id=bus_id, driver=driver)
-        except Bus.DoesNotExist:
-            return Response({"error": "Bus not found or not assigned to this driver"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Create a new trip
-        trip = DriverTrip.objects.create(
-            driver=driver,
-            bus=bus,
-            route_id=route_id,
-            start_time=request.data.get('start_time')
-        )
-
-        return Response({
-            "message": "Trip started successfully",
-            "trip_id": trip.id
-        }, status=status.HTTP_201_CREATED)
-
-
-class DriverTripListView(APIView):
-    """API to list all trips associated with a driver."""
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        driver = request.user.driverprofile
-        trips = DriverTrip.objects.filter(driver=driver)
-        trip_data = [
-            {"trip_id": trip.id, "bus": trip.bus.registration_no, "route": trip.route.id}
-            for trip in trips
-        ]
-        return Response({"driver_trips": trip_data}, status=status.HTTP_200_OK)
-
-
-class FinishDriverTripView(APIView):
-    """API to mark a driver's trip as finished."""
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        driver = request.user.driverprofile
-        trip_id = request.data.get('trip_id')
-
-        # Validate trip
-        try:
-            trip = DriverTrip.objects.get(id=trip_id, driver=driver)
-        except DriverTrip.DoesNotExist:
-            return Response({"error": "Trip not found or not assigned to this driver"},
-                            status=status.HTTP_404_NOT_FOUND)
-
-        trip.end_time = request.data.get('end_time')
-        trip.save()
-
-        return Response({"message": "Trip finished successfully"}, status=status.HTTP_200_OK)
-
-
-class AssignDriverToBusView(APIView):
-    """API to assign a driver to a bus."""
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request):
-        driver = request.user.driverprofile
-        bus_id = request.data.get('bus_id')
-
-        # Validate bus
-        try:
-            bus = Bus.objects.get(id=bus_id)
-        except Bus.DoesNotExist:
-            return Response({"error": "Bus not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        # Assign the driver
-        bus.driver = driver
-        bus.save()
-
-        return Response({
-            "message": "Driver assigned to bus successfully",
-            "bus": bus.registration_no
-        }, status=status.HTTP_200_OK)
-
-
-
-
-
-
-
-
 
 
 class AdjustBalanceView(APIView):
@@ -612,36 +165,6 @@ class StoppageListView(APIView):
         stoppages = Stoppage.objects.all()
         serializer = StoppageSerializer(stoppages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# @api_view(['GET', 'PUT'])
-# def update_profile_view(request):
-#     if request.method == 'GET':
-#         data = {"message": "Hello from Django"}
-#         return Response(data, status=status.HTTP_200_OK)
-#
-#     elif request.method == 'PUT':
-#         print(f"Request User: {request.user}")
-#         print(f"Is Authenticated: {request.user.is_authenticated}")
-#         print(f"Request Data: {request.data}")
-#
-#         if not request.user.is_authenticated:
-#             return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-#
-#         try:
-#             profile = Profile.objects.get(user=request.user)
-#             print("Profile found:", profile)
-#         except Profile.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#         serializer = ProfileSerializer(profile, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#         print("Serializer Errors:", serializer.errors)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
 
 
 class UpdateProfileView(APIView):
@@ -971,3 +494,92 @@ class AddBusCompanyView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddPhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Get user from request
+        user = request.user
+
+        # Ensure a file is provided
+        photo_file = request.FILES.get('file')
+        photo_type = request.data.get('type')
+
+        if not photo_file or not photo_type:
+            return Response({"error": "File and type are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Read the file and convert it to Base64
+        try:
+            file_data = photo_file.read()
+            b64_string = base64.b64encode(file_data).decode('utf-8')
+        except Exception as e:
+            return Response({"error": f"Error processing file: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Create the photo object in the database
+        photo = Photo.objects.create(user=user, type=photo_type, b64_string=b64_string)
+
+        # Serialize and return the response
+        serializer = PhotoSerializer(photo)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class UpdateFirstPhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        # Ensure a file and type are provided
+        photo_file = request.FILES.get('file')
+        photo_type = request.data.get('type')
+
+        if not photo_file or not photo_type:
+            return Response({"error": "File and type are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the first photo of the given type for the user
+        photo = Photo.objects.filter(user=user, type=photo_type).first()
+
+        if not photo:
+            return Response({"error": "No photo of this type found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Read the file and convert it to Base64
+        try:
+            file_data = photo_file.read()
+            b64_string = base64.b64encode(file_data).decode('utf-8')
+        except Exception as e:
+            return Response({"error": f"Error processing file: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Update the photo's base64 string
+        photo.b64_string = b64_string
+        photo.save()
+
+        # Serialize and return the response
+        serializer = PhotoSerializer(photo)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GetPhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, photo_type):
+        user = request.user
+
+        # Fetch the first photo of the specified type for the user
+        photo = Photo.objects.filter(user=user, type=photo_type).first()
+        if not photo:
+            return Response({"error": "No photo found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            # Decode Base64 back to image bytes
+            image_data = base64.b64decode(photo.b64_string)
+
+            # Return the image as an HTTP response
+            response = HttpResponse(image_data, content_type="image/png")  # Adjust content type as needed
+            response["Content-Disposition"] = f'inline; filename="photo_{photo_type}.png"'
+            return response
+
+        except Exception as e:
+            return Response({"error": f"Error decoding image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

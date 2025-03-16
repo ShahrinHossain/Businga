@@ -1,7 +1,6 @@
-from django.contrib.auth.models import User
-from django.db import models
 from django.db.models import Max
-
+from django.db import models
+from django.contrib.auth.models import User
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -11,6 +10,7 @@ class Profile(models.Model):
     role = models.CharField(max_length=100)
     balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     in_route = models.BooleanField(default=False)
+
 
     def __str__(self):
         return f"Profile of {self.name}"
@@ -28,62 +28,34 @@ class Profile(models.Model):
         return profile
 
 
-
 class DriverProfile(models.Model):
-    id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='driverprofile')
-    drivername = models.CharField(max_length=100)  # Changed from 'username'
-    email = models.EmailField(unique=True)  # Added email field
-    company_id = models.CharField(max_length=50)  # Added company ID
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+
+    name = models.CharField(max_length=100)
+    contact_no = models.CharField(max_length=14, default="Unknown")
+    license_no = models.CharField(max_length=20)
+    company_id = models.CharField(max_length=50)
     date_of_birth = models.DateField()
-    region = models.CharField(max_length=100)
-    on_duty = models.BooleanField(default=False)  # Added boolean field for duty status
+    on_duty = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"Driver {self.drivername} from {self.region}"
+        return f"Driver {self.name}"
 
-    @classmethod
-    def create_driver(cls, user, date_of_birth, region, company_id, email, on_duty=False):
-        """Creates a new driver profile linked to a user."""
-        driver_profile = cls.objects.create(
+
+    @staticmethod
+    def create_driver(user, company_id, on_duty=False, license_no=""):
+        driver_profile = DriverProfile.objects.create(
             user=user,
-            drivername=user.username,  # Default driver name is the username
-            email=email,
+            name=user.username,
+            contact_no="Unknown",
+            license_no=license_no,
             company_id=company_id,
-            date_of_birth=date_of_birth,
-            region=region,
+            date_of_birth="2000-01-01",
             on_duty=on_duty
         )
         return driver_profile
 
 
-# class VerifiedDriverProfile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="verified_driver")
-#     image_1 = models.TextField(null=True, blank=True)  # ✅ Store as Base64
-#     image_2 = models.TextField(null=True, blank=True)  # ✅ Store as Base64
-#     image_3 = models.TextField(null=True, blank=True)  # ✅ Store as Base64
-#
-#     def __str__(self):
-#         return f"Verified Driver: {self.user.username}"
-
-class VerifiedDriverProfile(models.Model):
-    user_id = models.CharField(max_length=100, unique=True)  # ✅ Removed ForeignKey, now a simple field
-    image_1 = models.TextField(null=True, blank=True)  # ✅ Stores Base64
-    image_2 = models.TextField(null=True, blank=True)
-    image_3 = models.TextField(null=True, blank=True)
-
-    def __str__(self):
-        return f"Verified Driver: {self.user_id}"
-
-class DriverTrip(models.Model):
-        driver = models.ForeignKey(DriverProfile, on_delete=models.CASCADE)
-        bus = models.ForeignKey('Bus', on_delete=models.CASCADE)
-        route = models.ForeignKey('Route', on_delete=models.CASCADE)
-        start_time = models.DateTimeField()
-        end_time = models.DateTimeField(null=True, blank=True)
-
-        def __str__(self):
-            return f"Driver {self.driver.name} on Bus {self.bus.registration_no}"
 
 
 class CashFlow(models.Model):
@@ -171,6 +143,7 @@ class Bus(models.Model):
     ac_status = models.BooleanField()
     location = models.CharField(max_length=100)
 
+
     def __str__(self):
         # return self.registration_no
         return f"{self.registration_no} - Driver: {self.driver.name if self.driver else 'Unassigned'}"
@@ -206,3 +179,14 @@ class OngoingTrip(models.Model):
             )
             self.trip_no = last_trip_no + 1
         super().save(*args, **kwargs)
+
+
+
+class Photo(models.Model):
+    id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="photos")
+    type = models.IntegerField()  # type is now an integer
+    b64_string = models.TextField()  # Storing base64-encoded string
+
+    def __str__(self):
+        return f"Photo {self.id} - Type {self.type} for {self.user.username}"
