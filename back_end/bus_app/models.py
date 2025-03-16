@@ -57,15 +57,23 @@ class DriverProfile(models.Model):
         return driver_profile
 
 
+# class VerifiedDriverProfile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="verified_driver")
+#     image_1 = models.TextField(null=True, blank=True)  # ✅ Store as Base64
+#     image_2 = models.TextField(null=True, blank=True)  # ✅ Store as Base64
+#     image_3 = models.TextField(null=True, blank=True)  # ✅ Store as Base64
+#
+#     def __str__(self):
+#         return f"Verified Driver: {self.user.username}"
+
 class VerifiedDriverProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="verified_driver")
-    image_1 = models.ImageField(upload_to="verified_drivers/")  # First Image
-    image_2 = models.ImageField(upload_to="verified_drivers/")  # Second Image
-    image_3 = models.ImageField(upload_to="verified_drivers/")  # Third Image
+    user_id = models.CharField(max_length=100, unique=True)  # ✅ Removed ForeignKey, now a simple field
+    image_1 = models.TextField(null=True, blank=True)  # ✅ Stores Base64
+    image_2 = models.TextField(null=True, blank=True)
+    image_3 = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"Verified Driver: {self.user.username}"  # ✅ Fixed incorrect attribute
-
+        return f"Verified Driver: {self.user_id}"
 
 class DriverTrip(models.Model):
         driver = models.ForeignKey(DriverProfile, on_delete=models.CASCADE)

@@ -4,7 +4,7 @@ from decimal import Decimal
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework import status
-
+import base64
 
 # from rest_framework.authtoken.models import Token
 
@@ -13,7 +13,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser
-
+from rest_framework.permissions import AllowAny
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
@@ -186,29 +186,109 @@ def driver_profile(request):
 #
 #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 @api_view(['POST'])
-@parser_classes([MultiPartParser, FormParser])  # ✅ Allows form-data uploads (image files)
+@permission_classes([AllowAny])  # ✅ Allows public access (No authentication needed)
+@parser_classes([MultiPartParser, FormParser])  # ✅ Handles file uploads
 def verify_driver(request):
-    """API to upload verification images for an independent Verified Driver"""
+    """API to register a driver using a given user_id and upload images"""
 
-    user_id = request.data.get('user')  # Extract user ID from request
-    try:
-        user = User.objects.get(id=user_id)  # Get User instance
-    except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+    # ✅ Extract `user_id` (REQUIRED)
+    user_id = request.data.get('user')
+    if not user_id:
+        return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-    # ✅ Convert request.data to mutable & assign user instance
-    request_data = request.data.copy()
-    request_data['user'] = user.id
+    # ✅ Convert uploaded images to Base64 (if provided)
+    def encode_image(image):
+        return base64.b64encode(image.read()).decode('utf-8') if image else None
 
-    serializer = VerifiedDriverSerializer(data=request_data)  # ✅ No 'files' argument needed
+    image_1 = encode_image(request.FILES.get('image_1'))
+    image_2 = encode_image(request.FILES.get('image_2'))
+    image_3 = encode_image(request.FILES.get('image_3'))
 
-    if serializer.is_valid():
-        serializer.save()
-        return Response({"message": "Verified driver images uploaded successfully"}, status=status.HTTP_201_CREATED)
+    # ✅ Directly create a new VerifiedDriverProfile with user_id
+    profile = VerifiedDriverProfile.objects.create(
+        user_id=user_id,  # ✅ Accept user_id as input without checking
+        image_1=image_1,
+        image_2=image_2,
+        image_3=image_3
+    )
 
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({
+        "message": "Verified driver registered successfully",
+        "user_id": user_id
+    }, status=status.HTTP_201_CREATED)
+
+class VerifiedDriverLogin1(APIView):
+    """API to upload driver verification images and store them as Base64 in MySQL"""
+
+    def post(self, request):
+        """Uploads driver images as Base64 and saves them to MySQL"""
+        user_id = request.data.get("user_id")
+        image_1 = request.data.get("image_1")
+        image_2 = request.data.get("image_2")
+        image_3 = request.data.get("image_3")
+
+        if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Store images in MySQL as Base64 strings
+        profile, created = VerifiedDriverProfile.objects.get_or_create(user=user)
+        if image_1:
+            profile.image_1 = image_1  # Base64 string
+        if image_2:
+            profile.image_2 = image_2  # Base64 string
+        if image_3:
+            profile.image_3 = image_3  # Base64 string
+
+        profile.save()
+        return Response({"message": "Driver images uploaded successfully"}, status=status.HTTP_201_CREATED)
+
+
+
+
+
+class VerifiedDriverView1(APIView):
+    """API to retrieve driver verification images stored in MySQL"""
+
+    def post(self, request):
+        """Retrieve driver profile images as Base64 from MySQL using JSON input"""
+        user_id = request.data.get("user_id")
+
+        if not user_id:
+            return Response({"error": "User ID is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            driver_profile = VerifiedDriverProfile.objects.get(user__id=user_id)
+        except VerifiedDriverProfile.DoesNotExist:
+            return Response({"error": "Verified driver profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize and return driver images
+        serializer = VerifiedDriverInfoSerializer(driver_profile)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

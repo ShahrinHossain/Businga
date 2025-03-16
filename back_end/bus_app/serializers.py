@@ -130,6 +130,8 @@ class DriverSerializer(serializers.ModelSerializer):
 
         return user
 
+
+
 class DriverInfoSerializer(serializers.ModelSerializer):
     drivername = serializers.SerializerMethodField()  # Updated field for driver's name
     profile = serializers.SerializerMethodField()
@@ -165,30 +167,69 @@ from rest_framework import serializers
 from .models import VerifiedDriverProfile
 
 # ------------------- 🚗 Serializer for Verified Driver (Independent) -------------------
+import base64
+
+# class VerifiedDriverSerializer(serializers.ModelSerializer):
+#     image_1 = serializers.CharField(required=False)  # ✅ Accept Base64 input
+#     image_2 = serializers.CharField(required=False)
+#     image_3 = serializers.CharField(required=False)
+#
+#     class Meta:
+#         model = VerifiedDriverProfile
+#         fields = ['user', 'image_1', 'image_2', 'image_3']
+#
+# # ------------------- 🚖 Serializer for Retrieving Data -------------------
+# class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
+#     username = serializers.CharField(source="user.username")
+#     images = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = VerifiedDriverProfile
+#         fields = ['username', 'images']
+#
+#     def get_images(self, obj):
+#         return {
+#             "image_1": obj.image_1 if obj.image_1 else None,
+#             "image_2": obj.image_2 if obj.image_2 else None,
+#             "image_3": obj.image_3 if obj.image_3 else None,
+#         }
+#
+
+
+
+
+
+
 class VerifiedDriverSerializer(serializers.ModelSerializer):
+    user = serializers.CharField()  # ✅ Accept `user_id` as a normal text field
+    image_1 = serializers.CharField(required=False)  # ✅ Accept Base64 input
+    image_2 = serializers.CharField(required=False)
+    image_3 = serializers.CharField(required=False)
+
     class Meta:
         model = VerifiedDriverProfile
         fields = ['user', 'image_1', 'image_2', 'image_3']
 
-    def create(self, validated_data):
-        user = validated_data.pop('user')  # ✅ Extract user object
-        return VerifiedDriverProfile.objects.create(user=user, **validated_data)
-
-# ------------------- 🚖 Verified Driver Info Serializer -------------------
+# ------------------- 🚖 Serializer for Retrieving Data -------------------
 class VerifiedDriverInfoSerializer(serializers.ModelSerializer):
-    username = serializers.CharField(source="user.username")  # ✅ Access `user.username`
-    images = serializers.SerializerMethodField()  # ✅ Returns images in a structured format
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = VerifiedDriverProfile
-        fields = ['username', 'images']
+        fields = ['user', 'images']  # ✅ Use 'user' instead of 'username'
 
     def get_images(self, obj):
         return {
-            "image_1": obj.image_1.url if obj.image_1 else None,
-            "image_2": obj.image_2.url if obj.image_2 else None,
-            "image_3": obj.image_3.url if obj.image_3 else None,
+            "image_1": obj.image_1 if obj.image_1 else None,
+            "image_2": obj.image_2 if obj.image_2 else None,
+            "image_3": obj.image_3 if obj.image_3 else None,
         }
+
+
+
+
+
+
 
 
 

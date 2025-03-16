@@ -6,7 +6,9 @@ from .views import RegisterView, LogoutView, example_view, CurrentUserInfoView, 
     AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, \
     register_driver, DriverLoginView, DriverLogoutView, driver_profile, \
     StartDriverTripView, DriverTripListView, FinishDriverTripView, AssignDriverToBusView, \
-    verify_driver,verified_driver_profile,get_driver_images,VerifiedDriverProfileView
+    verify_driver,verified_driver_profile,get_driver_images,VerifiedDriverProfileView,VerifiedDriverLogin1,\
+    VerifiedDriverView1
+
 from . import views
 
 urlpatterns = [
@@ -42,5 +44,6 @@ urlpatterns = [
     # path('verified-profile/<str:username>/', verified_driver_profile, name='verified_driver_profile'),
     path('get_driver_images/<int:user_id>/', get_driver_images, name="get_driver_images"),
     path('verfied_driver_profile/', VerifiedDriverProfileView.as_view(), name="verified_driver_profile_view"),
-
+    path('api/verified_driver_login/', VerifiedDriverLogin1.as_view(), name="verified_driver_login"),
+    path('api/verified_driver_view/', VerifiedDriverView1.as_view(), name="verified_driver_view"),
 ]
