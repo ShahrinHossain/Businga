@@ -35,3 +35,4 @@ Thumbs.db    # Windows
 
 # Dependency directories
 node_modules/
+/bus_app/migrations/
