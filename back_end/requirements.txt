@@ -8,3 +8,4 @@ django-cors-headers
 markdown
 dj-rest-auth
 mysqlclient
+Pillow

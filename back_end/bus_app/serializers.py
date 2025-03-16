@@ -4,48 +4,37 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany
+from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverProfile, Photo
 
-
-# class UserSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = User
-#         fields = ['username', 'email', 'password']
-#         extra_kwargs = {'password': {'write_only': True}}
-#
-#     def create(self, validated_data):
-#         user = User(
-#             email=validated_data['email'],
-#             username=validated_data['username'],
-#         )
-#         user.set_password(validated_data['password'])
-#         user.save()
-#         return user
 
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.CharField()  # Add role field
+    role = serializers.CharField()
+    company_id = serializers.CharField(required=False)
+    license_no = serializers.CharField(required=False)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role']  # Add role to fields
+        fields = ['username', 'email', 'password', 'role', 'company_id', 'license_no']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        # Extract role
-        role = validated_data.pop('role')  # Remove role from validated data
+        role = validated_data.pop('role')
 
-        # Create user
-        user = User(
-            email=validated_data['email'],
-            username=validated_data['username'],
+        user = User.objects.create_user(
+            email=validated_data.pop('email'),
+            username=validated_data.pop('username'),
+            password=validated_data.pop('password')
         )
-        user.set_password(validated_data['password'])
-        user.save()
 
-        # Create Profile and assign the role
-        Profile.create_profile(user, role)
+        if role == 'driver':
+            DriverProfile.create_driver(user, **validated_data)
+        else:
+            Profile.create_profile(user, role)
 
         return user
+
+
+
 
 class UserInfoSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()  # Custom field for full name from Profile
@@ -68,9 +57,9 @@ class UserInfoSerializer(serializers.ModelSerializer):
                 "role": obj.profile.role,
                 "balance": obj.profile.balance,
                 "in_route": obj.profile.in_route
+
             }
         return None
-
 
 class BalanceAdjustmentSerializer(serializers.Serializer):
     id = serializers.IntegerField()
@@ -108,3 +97,8 @@ class BusCompanySerializer(serializers.ModelSerializer):
         model = BusCompany
         fields = ['id', 'name', 'owner_id', 'employee_count', 'income']
 
+
+class PhotoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Photo
+        fields = ['id', 'user', 'type', 'b64_string']

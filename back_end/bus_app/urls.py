@@ -1,10 +1,12 @@
 from django.urls import path
 from dj_rest_auth.views import LoginView
-from .serializers import BalanceAdjustmentSerializer
-from .views import RegisterView, LogoutView, example_view, CurrentUserInfoView, \
-    AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
-    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView
+
 from . import views
+from .serializers import BalanceAdjustmentSerializer
+from .views import RegisterView, LogoutView, CurrentUserInfoView, \
+    AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
+    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView
+
 
 urlpatterns = [
     path('', views.all_users),
@@ -12,7 +14,11 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('current/', CurrentUserInfoView.as_view(), name='current'),
-    path('example/', example_view, name='example-view'),
+
+    path('add-photo/', views.AddPhotoView.as_view(), name='add-photo'),
+    path('update-photo/', views.UpdateFirstPhotoView.as_view(), name='update-photo'),
+    path('get-photo/<int:photo_type>/', views.GetPhotoView.as_view(), name='get-photo'),
+
     path('update-balance/', AdjustBalanceView.as_view(), name='update-balance'),
     path('make-payment/', AddToBalanceView.as_view(), name='make-payment'),
     path('add-stoppage/', StoppageCreateView.as_view(), name='add-stoppage'),
@@ -23,4 +29,7 @@ urlpatterns = [
     path('add-bus/', AddBusView.as_view(), name='add-bus'),
     path('add-route/', AddRouteView.as_view(), name='add-route'),
     path('bus-companies/', AddBusCompanyView.as_view(), name='add_bus_company'),
+
+
+    # path('verified-profile/<str:username>/', verified_driver_profile, name='verified_driver_profile'),
 ]

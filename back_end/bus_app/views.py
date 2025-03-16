@@ -1,80 +1,76 @@
 import math
 from decimal import Decimal
 
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.response import Response
+from rest_framework import status
+import base64
+
+# from rest_framework.authtoken.models import Token
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
+
+
 # from django.contrib.sites
 import requests
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany
+from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
-    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer
+    ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, \
+    DriverProfile, PhotoSerializer
+
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+from rest_framework_simplejwt.tokens import RefreshToken
+from .serializers import UserSerializer
+from rest_framework.views import APIView
 
-
-# Create your views here.
 
 
 def all_users(request):
     return HttpResponse('Returning all users')
 
 
-# class RegisterView(APIView):
-#     def post(self, request):
-#         serializer = UserSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RegisterView(APIView):
+    authentication_classes = []  # No authentication required for registration
+    permission_classes = []  # Allow all users, even unauthenticated
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
+            user = serializer.save()  # Save the new user instance
 
-        # Log serializer errors to see what went wrong
-        print(serializer.errors)  # This will print the validation errors to the console
+            # Generate JWT tokens after successful registration
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            return Response({
+                "message": "User registered successfully",
+                "access": access_token,  # Corrected variable name
+                "refresh_token": str(refresh),
+            }, status=status.HTTP_201_CREATED)
+
+        print(serializer.errors)  # Log errors for debugging
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-class LoginView(APIView):
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        print(username)
-        print(password)
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-# class LoginView(APIView):
-#     def post(self, request):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-#         print(username)
-#         print(password)
-#         user = authenticate(request, username=username, password=password)
-#         if user is not None:
-#             login(request, user)
-#             try:
-#                 # Fetch the profile associated with the user
-#                 profile = Profile.objects.get(user=user)
-#                 role = profile.role  # Get the role from the profile
-#                 return Response({
-#                     "message": "Login successful",
-#                     "role": role,  # Include the role in the response
-#                     "access": 'some_jwt_token'  # Your JWT token logic here
-#                 }, status=status.HTTP_200_OK)
-#             except Profile.DoesNotExist:
-#                 return Response({"error": "Profile not found"}, status=status.HTTP_400_BAD_REQUEST)
-#         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LogoutView(APIView):
@@ -84,28 +80,12 @@ class LogoutView(APIView):
         return Response({"message": "Logout successful"}, status=200)
 
 
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-
-
-@api_view(['GET', 'POST'])
-def example_view(request):
-    if request.method == 'GET':
-        data = {"message": "Hello from Django"}
-        return Response(data, status=status.HTTP_200_OK)
-    elif request.method == 'POST':
-        received_data = request.data
-        return Response({"received_data": received_data}, status=status.HTTP_201_CREATED)
-
-
 class CurrentUserInfoView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    # return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class AdjustBalanceView(APIView):
@@ -185,36 +165,6 @@ class StoppageListView(APIView):
         stoppages = Stoppage.objects.all()
         serializer = StoppageSerializer(stoppages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-# @api_view(['GET', 'PUT'])
-# def update_profile_view(request):
-#     if request.method == 'GET':
-#         data = {"message": "Hello from Django"}
-#         return Response(data, status=status.HTTP_200_OK)
-#
-#     elif request.method == 'PUT':
-#         print(f"Request User: {request.user}")
-#         print(f"Is Authenticated: {request.user.is_authenticated}")
-#         print(f"Request Data: {request.data}")
-#
-#         if not request.user.is_authenticated:
-#             return Response({"error": "User not authenticated"}, status=status.HTTP_401_UNAUTHORIZED)
-#
-#         try:
-#             profile = Profile.objects.get(user=request.user)
-#             print("Profile found:", profile)
-#         except Profile.DoesNotExist:
-#             return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
-#
-#         serializer = ProfileSerializer(profile, data=request.data, partial=True)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_200_OK)
-#
-#         print("Serializer Errors:", serializer.errors)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#
 
 
 class UpdateProfileView(APIView):
@@ -544,3 +494,92 @@ class AddBusCompanyView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddPhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Get user from request
+        user = request.user
+
+        # Ensure a file is provided
+        photo_file = request.FILES.get('file')
+        photo_type = request.data.get('type')
+
+        if not photo_file or not photo_type:
+            return Response({"error": "File and type are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Read the file and convert it to Base64
+        try:
+            file_data = photo_file.read()
+            b64_string = base64.b64encode(file_data).decode('utf-8')
+        except Exception as e:
+            return Response({"error": f"Error processing file: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Create the photo object in the database
+        photo = Photo.objects.create(user=user, type=photo_type, b64_string=b64_string)
+
+        # Serialize and return the response
+        serializer = PhotoSerializer(photo)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class UpdateFirstPhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        # Ensure a file and type are provided
+        photo_file = request.FILES.get('file')
+        photo_type = request.data.get('type')
+
+        if not photo_file or not photo_type:
+            return Response({"error": "File and type are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Get the first photo of the given type for the user
+        photo = Photo.objects.filter(user=user, type=photo_type).first()
+
+        if not photo:
+            return Response({"error": "No photo of this type found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Read the file and convert it to Base64
+        try:
+            file_data = photo_file.read()
+            b64_string = base64.b64encode(file_data).decode('utf-8')
+        except Exception as e:
+            return Response({"error": f"Error processing file: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Update the photo's base64 string
+        photo.b64_string = b64_string
+        photo.save()
+
+        # Serialize and return the response
+        serializer = PhotoSerializer(photo)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class GetPhotoView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, photo_type):
+        user = request.user
+
+        # Fetch the first photo of the specified type for the user
+        photo = Photo.objects.filter(user=user, type=photo_type).first()
+        if not photo:
+            return Response({"error": "No photo found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            # Decode Base64 back to image bytes
+            image_data = base64.b64decode(photo.b64_string)
+
+            # Return the image as an HTTP response
+            response = HttpResponse(image_data, content_type="image/png")  # Adjust content type as needed
+            response["Content-Disposition"] = f'inline; filename="photo_{photo_type}.png"'
+            return response
+
+        except Exception as e:
+            return Response({"error": f"Error decoding image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
