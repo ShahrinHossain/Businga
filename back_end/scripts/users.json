@@ -1,0 +1,65 @@
+[
+    {
+        "username": "owner_01",
+        "email": "owner01@example.com",
+        "password": "abcd1234",
+        "role": "owner",
+        "company_name": "Metro Bus Ltd"
+    },
+    {
+        "username": "owner_02",
+        "email": "owner02@example.com",
+        "password": "abcd1234",
+        "role": "owner",
+        "company_name": "Skyline Transport"
+    },
+    {
+        "username": "owner_03",
+        "email": "owner03@example.com",
+        "password": "abcd1234",
+        "role": "owner",
+        "company_name": "Sunrise Travels"
+    },
+    {
+        "username": "driver_01",
+        "email": "driver01@example.com",
+        "password": "abcd1234",
+        "role": "driver",
+        "company_id": "1",
+        "license_no": "D1234567890"
+    },
+    {
+        "username": "driver_02",
+        "email": "driver02@example.com",
+        "password": "abcd1234",
+        "role": "driver",
+        "company_id": "2",
+        "license_no": "D2345678901"
+    },
+    {
+        "username": "driver_03",
+        "email": "driver03@example.com",
+        "password": "abcd1234",
+        "role": "driver",
+        "company_id": "3",
+        "license_no": "D3456789012"
+    },
+    {
+        "username": "passenger_01",
+        "email": "passenger01@example.com",
+        "password": "abcd1234",
+        "role": "user"
+    },
+    {
+        "username": "passenger_02",
+        "email": "passenger02@example.com",
+        "password": "abcd1234",
+        "role": "user"
+    },
+    {
+        "username": "passenger_03",
+        "email": "passenger03@example.com",
+        "password": "abcd1234",
+        "role": "user"
+    }
+]

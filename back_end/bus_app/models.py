@@ -34,27 +34,25 @@ class DriverProfile(models.Model):
     name = models.CharField(max_length=100)
     contact_no = models.CharField(max_length=14, default="Unknown")
     license_no = models.CharField(max_length=20)
-    company_id = models.CharField(max_length=50)
+    company = models.ForeignKey('BusCompany', on_delete=models.CASCADE)  # FK to BusCompany
     date_of_birth = models.DateField()
     on_duty = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Driver {self.name}"
 
-
     @staticmethod
-    def create_driver(user, company_id, on_duty=False, license_no=""):
+    def create_driver(user, company, on_duty=False, license_no=""):
         driver_profile = DriverProfile.objects.create(
             user=user,
             name=user.username,
             contact_no="Unknown",
             license_no=license_no,
-            company_id=company_id,
+            company=company,  # Now uses FK instead of string
             date_of_birth="2000-01-01",
             on_duty=on_duty
         )
         return driver_profile
-
 
 
 
@@ -118,14 +116,23 @@ class Stoppage(models.Model):
 
 
 class BusCompany(models.Model):
+    id = models.AutoField(primary_key=True)  # Keep the default ID column
+    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to User
     name = models.CharField(max_length=100)
-    owner_id = models.CharField(max_length=100)
-    routes = models.ManyToManyField(Route)
-    employee_count = models.IntegerField()
-    income = models.DecimalField(max_digits=15, decimal_places=2)
+    employee_count = models.IntegerField(default=0)
+    income = models.DecimalField(max_digits=15, decimal_places=2, default=0.00)
 
     def __str__(self):
         return self.name
+
+    def create_bus_company(user, company_name, employee_count=0, income=0.00):
+        bus_company = BusCompany.objects.create(
+            user=user,
+            name=company_name,
+            employee_count=employee_count,
+            income=income
+        )
+        return bus_company
 
 
 class TotalIntake(models.Model):
