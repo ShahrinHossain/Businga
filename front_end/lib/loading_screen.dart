@@ -49,15 +49,15 @@ class _LoadingScreenState extends State<LoadingScreen> {
         final userData = json.decode(response.body);
         String role = userData['profile']['role'] ?? '';
 
-        if (role == 'User') {
+        if (role == 'user') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => HomeScreen()),
           );
-        } else if (role == 'Driver') {
+        } else if (role == 'driver') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => DriverHomeScreen()),
           );
-        } else if (role == 'Owner') {
+        } else if (role == 'owner') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => BusOwnerHomeScreen()),
           );
