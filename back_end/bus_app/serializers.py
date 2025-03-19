@@ -9,16 +9,18 @@ from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompan
 
 class UserSerializer(serializers.ModelSerializer):
     role = serializers.CharField()
-    company_id = serializers.CharField(required=False)
-    license_no = serializers.CharField(required=False)
+    company_id = serializers.CharField(required=False, allow_null=True)
+    license_no = serializers.CharField(required=False, allow_null=True)
+    company_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'role', 'company_id', 'license_no']
+        fields = ['username', 'email', 'password', 'role', 'company_id', 'license_no', 'company_name']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         role = validated_data.pop('role')
+        company_id = validated_data.pop('company_id', None)  # Now expecting company_id
 
         user = User.objects.create_user(
             email=validated_data.pop('email'),
@@ -27,13 +29,15 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         if role == 'driver':
-            DriverProfile.create_driver(user, **validated_data)
-        else:
-            Profile.create_profile(user, role)
+            company = BusCompany.objects.get(id=company_id)  # Fetch company by ID
+            DriverProfile.create_driver(user, company, **validated_data)
 
+        elif role == 'owner':
+            company_name = validated_data.pop('company_name')  # Owners must pass a name
+            BusCompany.objects.create(user=user, name=company_name)  # Create company for owner
+
+        Profile.create_profile(user, role)
         return user
-
-
 
 
 class UserInfoSerializer(serializers.ModelSerializer):
@@ -45,7 +49,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'name', 'profile']
 
     def get_name(self, obj):
-        # Using the name field from the associated Profile
         if hasattr(obj, 'profile'):
             return obj.profile.name
         return None

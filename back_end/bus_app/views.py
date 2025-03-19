@@ -48,7 +48,6 @@ def all_users(request):
     return HttpResponse('Returning all users')
 
 
-
 class RegisterView(APIView):
     authentication_classes = []  # No authentication required for registration
     permission_classes = []  # Allow all users, even unauthenticated
@@ -150,6 +149,8 @@ class AddToBalanceView(APIView):
 
 
 class StoppageCreateView(APIView):
+    authentication_classes = []  # No authentication required for registration
+    permission_classes = [] # Allow all users, even unauthenticated
     def post(self, request):
         serializer = StoppageSerializer(data=request.data)
 
@@ -415,8 +416,8 @@ class FinishTripView(APIView):
         )
 
 class AddBusView(APIView):
-    permission_classes = [IsAuthenticated]
-
+    permission_classes = []
+    authentication_classes = []  # No authentication required for registration
     def post(self, request):
         # print(request.data)
         # Extract data from request
