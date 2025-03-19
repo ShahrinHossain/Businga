@@ -64,7 +64,6 @@ class UserInfoSerializer(serializers.ModelSerializer):
 class BalanceAdjustmentSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
-
 class StoppageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stoppage
