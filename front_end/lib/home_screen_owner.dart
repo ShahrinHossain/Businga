@@ -15,7 +15,8 @@ class BusOwnerHomeScreen extends StatefulWidget {
 class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
   int _selectedIndex = 0;
   String? _balance; // Stores the fetched balance
-  bool _isLoading = true; // Tracks if the balance is being loaded
+  String? _companyName; // Stores the company name
+  bool _isLoading = true; // Tracks if the data is being loaded
   String? _username; // Stores the current user's username
 
   // Function to get the stored JWT token from SharedPreferences
@@ -34,8 +35,9 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
     }
 
     try {
+      // Fetch user data from the "current-owner" API
       final response = await http.get(
-        Uri.parse('$baseUrl/users/current/'),
+        Uri.parse('$baseUrl/users/current-owner/'),
         headers: {
           'Authorization': 'Bearer $token', // Add token in Authorization header
           'Content-Type': 'application/json',
@@ -46,13 +48,16 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
         // Handle success
         final userData = json.decode(response.body);
         setState(() {
-          _username = userData['username'];
-          _balance = userData['profile']['balance']?.toString() ?? 'N/A'; // Extract balance from the API response
+          // Extract values from the response and assign them to the variables
+          _companyName = userData['name'] ?? 'N/A'; // Using 'name' for company name
+          _balance = userData['income']?.toString() ?? 'N/A'; // Using 'income' for balance
+
           _isLoading = false;
         });
       } else {
         setState(() {
           _balance = '100.00';
+          _companyName = 'Unknown';
           _isLoading = false;
         });
         // Handle failure (e.g., unauthorized)
@@ -61,11 +66,13 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
     } catch (e) {
       setState(() {
         _balance = '100.00';
+        _companyName = 'Unknown';
         _isLoading = false;
       });
       print('An error occurred: $e');
     }
   }
+
 
   @override
   void initState() {
@@ -89,20 +96,34 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        toolbarHeight: 60, // Adjust height of AppBar if necessary
+        toolbarHeight: 100,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.teal[800]), // Go Back Icon
+          icon: Icon(Icons.arrow_back, color: Colors.teal[800]),
           onPressed: () {
-            SystemNavigator.pop(); // Exits the app
+            Navigator.of(context).pop();
           },
         ),
-        title: Text(
-          'Businga', // App Name at the top
-          style: TextStyle(
-            fontSize: 35,
-            fontWeight: FontWeight.bold,
-            color: Colors.teal[800], // Deep sea green
-          ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 4),
+            Text(
+              'Bussinga',
+              style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal[800],
+              ),
+            ),
+            Text(
+              'Owner Dashboard',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.teal[800],
+              ),
+            ),
+          ],
         ),
       ),
       body: Stack(
@@ -131,6 +152,12 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       SizedBox(height: 20),
+                      // Company Info - Dynamic content here
+                      _buildInfoCard('Company', _isLoading ? 'Loading...' : (_companyName ?? 'Unknown'), Colors.greenAccent),
+                      SizedBox(height: 20),
+                      // Balance Info - Dynamic content here
+                      _buildInfoCard('Balance', _isLoading ? 'Loading...' : (_balance ?? '100.00'), Colors.greenAccent),
+                      SizedBox(height: 20),
                       // Bus Management Section
                       Text(
                         "Bus Management",
@@ -140,11 +167,12 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildFeatureCard(context, 'Add Bus', Icons.directions_bus, Colors.blue, () {
+                          _buildFeatureCard(context, 'Add Bus', Icons.directions_bus, Color(
+                              0x8C3A534D), () {
                             // Handle Add Bus
                             print("Add Bus clicked");
                           }),
-                          _buildFeatureCard(context, 'Delete Bus', Icons.delete, Colors.red, () {
+                          _buildFeatureCard(context, 'Delete Bus', Icons.delete, Color(0x8C3A534D), () {
                             // Handle Delete Bus
                             print("Delete Bus clicked");
                           }),
@@ -160,36 +188,16 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildFeatureCard(context, 'Add Driver', Icons.person_add, Colors.green, () {
+                          _buildFeatureCard(context, 'Add Driver', Icons.person_add, Color(0x8C3A534D), () {
                             // Handle Add Driver
                             print("Add Driver clicked");
                           }),
-                          _buildFeatureCard(context, 'Delete Driver', Icons.person_remove, Colors.orange, () {
+                          _buildFeatureCard(context, 'Delete Driver', Icons.person_remove, Color(0x8C3A534D), () {
                             // Handle Delete Driver
                             print("Delete Driver clicked");
                           }),
                         ],
                       ),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildFeatureCard(context, 'Add Assistant', Icons.person_add_alt_1, Colors.purple, () {
-                            // Handle Add Driver Assistant
-                            print("Add Driver Assistant clicked");
-                          }),
-                          _buildFeatureCard(context, 'Delete Assistant', Icons.person_remove_alt_1, Colors.pink, () {
-                            // Handle Delete Driver Assistant
-                            print("Delete Driver Assistant clicked");
-                          }),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      // Balance Info - Dynamic content here
-                      _buildInfoCard('Balance', _isLoading ? 'Loading...' : (_balance ?? '100.00'), Colors.greenAccent),
-                      SizedBox(height: 20),
-                      // Location Info
-                      _buildInfoCard('Location', 'K B Bazar Road, Gazipur', Colors.greenAccent),
                     ],
                   ),
                 ),
@@ -259,11 +267,11 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
           children: [
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Changed to black
             ),
             Text(
               content,
-              style: TextStyle(fontSize: 16, color: Colors.white),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Changed to black
             ),
           ],
         ),
