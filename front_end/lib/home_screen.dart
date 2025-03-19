@@ -1,4 +1,6 @@
+import 'package:businga1/route_view.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +14,8 @@ import 'settings.dart';
 import 'payment_page.dart';
 import 'package:flutter/services.dart';
 import 'globalVariables.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
 
@@ -25,6 +29,10 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _balance; // Stores the fetched balance
   bool _isLoading = true; // Tracks if the balance is being loaded
   String? _username; // Stores the current user's username
+  TextEditingController _searchController = TextEditingController();
+  List<String> _suggestions = [];
+  List<String> _suggestionIds = [];
+  bool _showClearButton = false; // Tracks if the "X" should be shown
 
   // Function to get the stored JWT token from SharedPreferences
   Future<String?> getAuthToken() async {
@@ -75,42 +83,128 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
+// Function to fetch place details and print coordinates
+  Future<Map<String, double>> fetchPlaceDetails(String placeId) async {
+    const String apiKey = 'AIzaSyB9C6viTxdaZbqrwtU8KqRxyIYTT1AmXYA';
+    print(placeId);
+
+    final response = await http.get(
+      Uri.parse('https://places.googleapis.com/v1/places/$placeId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'location',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+
+      if (data.containsKey('location')) {
+        double latitude = data['location']['latitude'];
+        double longitude = data['location']['longitude'];
+
+        // Return coordinates as a Map
+        return {
+          'lat': latitude,
+          'lng': longitude,
+        };
+      } else {
+        print('Location data is missing');
+        return {};
+      }
+    } else {
+      print('Failed to fetch place details: ${response.body}');
+      return {};
+    }
+  }
+
+  // Function to fetch place suggestions from Google Places API
+  Future<void> fetchPlaceSuggestions(String input) async {
+    const String apiKey = 'AIzaSyB9C6viTxdaZbqrwtU8KqRxyIYTT1AmXYA';
+
+    // Get the device's current location
+    Position position = await _determinePosition();
+    double latitude = position.latitude;
+    double longitude = position.longitude;
+
+    final response = await http.post(
+      Uri.parse('https://places.googleapis.com/v1/places:autocomplete'),
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+      },
+      body: json.encode({
+        'input': input,
+        'locationBias': {
+          'circle': {
+            'center': {'latitude': latitude, 'longitude': longitude},
+            'radius': 500.0
+          }
+        }
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      List<String> suggestions = [];
+      List<String> suggestionIDs = [];
+      for (var suggestion in data['suggestions']) {
+        suggestions.add(suggestion['placePrediction']['text']['text']);
+        suggestionIDs.add(suggestion['placePrediction']['placeId']);
+      }
+      setState(() {
+        _suggestions = suggestions;
+        _suggestionIds = suggestionIDs;
+      });
+    } else {
+      print('Failed to fetch place suggestions: ${response.body}');
+    }
+  }
+
+  Future<Position> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Check if location services are enabled
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      // Location services are not enabled, return a default position
+      throw Exception('Location services are disabled.');
+    }
+
+    // Check if we have permission to access the location
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        // If permission is denied, throw an error
+        throw Exception('Location permission denied');
+      }
+    }
+
+    // Get the current position
+    return await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  }
+
+  // Function to clear the search input and suggestions
+  void _clearSearch() {
+    setState(() {
+      _searchController.clear();
+      _suggestions = [];
+      _showClearButton = false;
+    });
+  }
+
+
+
+
   @override
   void initState() {
     super.initState();
     getUserData(); // Fetch user data when screen loads
   }
-
-  // Function to fetch the balance from the API
-  // Future<void> _fetchBalance() async {
-  //   final url = Uri.parse('$baseUrl/users/current/'); // API endpoint for user info
-  //   try {
-  //     final response = await http.get(
-  //       url,
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //     );
-  //
-  //     if (response.statusCode == 200) {
-  //       final data = json.decode(response.body);
-  //       setState(() {
-  //         _balance = data['balance']?.toString() ?? 'N/A'; // Extract balance from the API response
-  //         _isLoading = false;
-  //       });
-  //     } else {
-  //       setState(() {
-  //         _balance = '100.00';
-  //         _isLoading = false;
-  //       });
-  //     }
-  //   } catch (error) {
-  //     setState(() {
-  //       _balance = '100.00';
-  //       _isLoading = false;
-  //     });
-  //   }
-  // }
 
   // Method to handle bottom navigation taps
   void _onItemTapped(int index) {
@@ -189,24 +283,109 @@ class _HomeScreenState extends State<HomeScreen> {
                             SizedBox(width: 10),
                             Expanded(
                               child: TextField(
+                                controller: _searchController,
                                 decoration: InputDecoration(
                                   hintText: 'Where to?',
                                   filled: true,
                                   fillColor: Colors.grey[200],
-                                  contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 20),
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 20),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(30),
                                     borderSide: BorderSide.none,
                                   ),
-                                  suffixIcon: Icon(Icons.search, color: Colors.grey),
+                                  suffixIcon: GestureDetector(
+                                    onTap: _searchController.text.isEmpty ? null : _clearSearch,
+                                    child: Icon(
+                                      _searchController.text.isEmpty ? Icons.search : Icons.close,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
                                 ),
+                                onChanged: (value) {
+                                  if (value.isNotEmpty) {
+                                    fetchPlaceSuggestions(value);
+                                  } else {
+                                    setState(() {
+                                      _suggestions.clear();
+                                    });
+                                  }
+                                },
                               ),
                             ),
                           ],
                         ),
                       ),
                       SizedBox(height: 20),
-                      // Routes and Top-up Buttons
+                      // Suggestions list as a layered widget
+                      if (_suggestions.isNotEmpty)
+                        Positioned(
+                          top: 100, // Adjust the top position based on your UI
+                          left: 20,
+                          right: 20,
+                          child: Material(
+                            color: Colors.transparent,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                  ),
+                                ],
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: _suggestions.length,
+                                itemBuilder: (context, index) {
+                                  return ListTile(
+                                    title: Text(_suggestions[index]),
+                                    onTap: () async {
+                                      print(_suggestions);
+                                      // Get the place details (coordinates) for the tapped suggestion
+                                      String placeName = _suggestions[index];  // Name of the tapped place
+                                      String placeId = _suggestionIds[index];
+                                      // Fetch place details using placeId
+                                      var placeDetails = await fetchPlaceDetails(placeId);
+
+                                      // Assume placeDetails returns the coordinates (latitude, longitude)
+                                      double? destinationLat = placeDetails['lat'];
+                                      double? destinationLng = placeDetails['lng'];
+
+                                      // Get current location (for source coordinates)
+                                      Position currentPosition = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+                                      double srcLat = currentPosition.latitude;
+                                      double srcLng = currentPosition.longitude;
+
+                                      // Save both coordinates to SharedPreferences
+                                      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+                                      // Save source and destination coordinates
+                                      await prefs.setDouble('src_lat', srcLat);
+                                      await prefs.setDouble('src_lng', srcLng);
+                                      await prefs.setDouble('dest_lat', destinationLat!);
+                                      await prefs.setDouble('dest_lng', destinationLng!);
+
+                                      // Show confirmation
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text("Selected Destination: $placeName")),
+                                      );
+
+                                      // Navigate to RouteView page
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (context) => RouteView()),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      SizedBox(height: 20),
                       // Routes and Top-up Buttons
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -302,8 +481,8 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Account',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Location',
+            icon: Icon(Icons.local_taxi),
+            label: 'Routes',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
@@ -313,6 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
 
   // Function to build feature cards like Routes and Top-up
   // Updated Feature Card Function
