@@ -50,7 +50,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
         final userData = json.decode(response.body);
         String role = userData['profile']['role'] ?? '';
 
-        if (role == 'user') {
+        if (role == 'User') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => HomeScreen()),
           );

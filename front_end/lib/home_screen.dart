@@ -386,18 +386,44 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage(), textColor: Colors.black),
-                          _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, const Checkout(), textColor: Colors.black),
+                          _buildFeatureCard(
+                            context,
+                            'Routes',
+                            Icons.directions_bus,
+                            [Colors.teal[700]!, Colors.teal[400]!], // Gradient colors
+                            RouteSelectionPage(),
+                          ),
+                          _buildFeatureCard(
+                            context,
+                            'Top-up',
+                            Icons.account_balance_wallet,
+                            [Colors.orange[700]!, Colors.orange[400]!], // Gradient colors
+                            const Checkout(),
+                          ),
                         ],
                       ),
 
-                      SizedBox(height: 20),
-                      // Balance Info - Dynamic content here
-                      _buildInfoCard('Balance', _isLoading ? 'Loading...' : (_balance ?? '100.00'), Colors.greenAccent),
-                      SizedBox(height: 20),
-                      // Location Info
-                      _buildInfoCard('Location', 'K B Bazar Road, Gazipur', Colors.greenAccent),
-                      SizedBox(height: 20),
+                      SizedBox(height: 15),
+
+// Balance Info - Updated with an icon
+                      _buildInfoCard(
+                          'Balance',
+                          _isLoading ? 'Loading...' : (_balance ?? '100.00'),
+                          Colors.green,
+                          Icons.account_balance_wallet // Icon added
+                      ),
+
+                      SizedBox(height: 15),
+
+// Location Info - Updated with an icon
+                      _buildInfoCard(
+                          'Location',
+                          'K B Bazar Road, Gazipur',
+                          Colors.blueAccent,
+                          Icons.location_on // Icon added
+                      ),
+
+                      SizedBox(height: 15),
                       // Tour Section
                       Container(
                         width: double.infinity,
@@ -492,28 +518,47 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Function to build feature cards like Routes and Top-up
   // Updated Feature Card Function
-  Widget _buildFeatureCard(BuildContext context, String title, IconData icon, Color color, Widget nextPage, {Color textColor = Colors.black}) {
+  Widget _buildFeatureCard(BuildContext context, String title, IconData icon, List<Color> gradientColors, Widget nextPage) {
     return GestureDetector(
       onTap: () {
         Navigator.of(context).push(MaterialPageRoute(builder: (context) => nextPage));
       },
-      child: Card(
-        color: color,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        child: SizedBox(
-          width: 150,
-          height: 150,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 40, color: Colors.black),
-              SizedBox(height: 10),
-              Text(
-                title,
-                style: TextStyle(fontSize: 16, color: textColor), // Now text color can be changed dynamically
-              ),
-            ],
+      child: Container(
+        width: 130,
+        height: 130,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: gradientColors,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: gradientColors.last.withOpacity(0.4),
+              blurRadius: 5,
+              spreadRadius: 1,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 45, color: Colors.white),
+            ),
+            SizedBox(height: 12),
+            Text(
+              title,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ],
         ),
       ),
     );
@@ -521,22 +566,50 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
   // Function to build balance and location info cards
-  Widget _buildInfoCard(String title, String content, Color color) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      color: color,
+  Widget _buildInfoCard(String title, String content, Color color, IconData icon) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 7),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withOpacity(0.6), color.withOpacity(0.6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.4),
+            blurRadius: 10,
+            spreadRadius: 2,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: EdgeInsets.all(15),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, size: 28, color: Colors.white),
+                ),
+                SizedBox(width: 12),
+                Text(
+                  title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ],
             ),
             Text(
               content,
-              style: TextStyle(fontSize: 16, color: Colors.black),
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ],
         ),
