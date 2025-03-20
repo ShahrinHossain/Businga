@@ -52,7 +52,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
         if (role == 'user') {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreenAdmin()),
+            MaterialPageRoute(builder: (context) => HomeScreen()),
           );
         } else if (role == 'driver') {
           Navigator.of(context).pushReplacement(
