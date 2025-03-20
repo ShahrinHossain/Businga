@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'dart:async';
 import 'package:permission_handler/permission_handler.dart'; // For permissions
-import 'package:geolocator/geolocator.dart'; // For location tracking
+import 'package:geolocator/geolocator.dart';
+
+import 'emergency_button.dart'; // For location tracking
 
 class DriverHomeScreen extends StatefulWidget {
   @override
@@ -187,16 +189,24 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           // Emergency Button Positioned at top right corner
           Positioned(
             top: 4, // Position the button from top
-            left: 20, // Position the button from the right
+            left: 20, // Position the button from the left
             child: FloatingActionButton(
               onPressed: () {
-                // Define the emergency action here
-                print("Emergency Button Pressed");
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EmergencyButton(
+                      busOwnerPhoneNumber: "+8801793597139", // Replace with actual bus owner's phone number
+                      policeStationPhoneNumber: "+098102102", // Replace with actual police station's phone number
+                    ),
+                  ),
+                );
               },
               backgroundColor: Colors.red, // Red button color
               child: Icon(Icons.warning, size: 30, color: Colors.white), // Emergency icon
             ),
-          ),
+          )
+
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
