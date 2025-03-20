@@ -510,7 +510,8 @@ class AddBusView(APIView):
 
 
 class AddRouteView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []
+    authentication_classes = []
 
     def post(self, request):
         # Extract stoppages list from request
@@ -730,6 +731,86 @@ class FindNearestStoppage(APIView):
                     "longitude": nearest_stoppage.longitude,
                     "queue_length": nearest_stoppage.queue_length,
                 },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class CurrentTripView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the user's profile
+        profile = Profile.objects.get(user=request.user)
+
+        # Check if the user is currently in a trip
+        if not profile.in_route:
+            return Response({"error": "User is not currently in a trip."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get the ongoing trip details
+        ongoing_trip = OngoingTrip.objects.filter(user=request.user).last()
+
+        return Response(
+            {
+                "message": "User is currently in a trip.",
+                "trip": {
+                    "user": ongoing_trip.user.id,
+                    "bus": ongoing_trip.bus_id.id,
+                    "from_id": ongoing_trip.from_id.id,
+                    "route_id": ongoing_trip.route_id.id,
+                    "arrival_time": ongoing_trip.arrival_time,
+                    "trip_no": ongoing_trip.trip_no,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
+
+class ListLastTrips(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the user's profile
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({"error": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+        # Get the last 10 trips for the user, ordered by timestamp (most recent first)
+        last_trips = Trip.objects.filter(user=request.user).order_by('-timestamp')[:10]
+
+        # Serialize the trip data
+        trips_data = []
+        for trip in last_trips:
+            trips_data.append({
+                "user": trip.user.id,
+                "bus": trip.bus.id,
+                "from_stoppage": {
+                    "id": trip.from_id.id,
+                    "name": trip.from_id.name,
+                    "latitude": trip.from_id.latitude,
+                    "longitude": trip.from_id.longitude,
+                },
+                "to_stoppage": {
+                    "id": trip.to_id.id,
+                    "name": trip.to_id.name,
+                    "latitude": trip.to_id.latitude,
+                    "longitude": trip.to_id.longitude,
+                },
+                "distance": trip.distance,  # Distance in kilometers
+                "fare": str(trip.fare),  # Convert Decimal to string for JSON serialization
+                "route": {
+                    "id": trip.route_id.id,
+                },
+                "arrival_time": trip.arrival_time.isoformat(),  # Convert DateTime to ISO format
+                "trip_no": trip.trip_no,
+                "timestamp": trip.timestamp.isoformat(),  # Convert DateTime to ISO format
+            })
+
+        return Response(
+            {
+                "message": "Last 10 trips.",
+                "trips": trips_data,
             },
             status=status.HTTP_200_OK,
         )
