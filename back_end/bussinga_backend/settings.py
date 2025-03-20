@@ -174,3 +174,9 @@ SIMPLE_JWT = {
     "BLACKLIST_AFTER_ROTATION": True,  # Blacklists old refresh tokens
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
+
+# Set the time zone to Asia/Dhaka (GMT+6)
+TIME_ZONE = 'Asia/Dhaka'
+
+# Enable time zone support
+USE_TZ = True

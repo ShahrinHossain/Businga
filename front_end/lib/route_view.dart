@@ -113,7 +113,7 @@ class _RouteViewState extends State<RouteView> {
       }
 
       if (nearestSourceStoppage != null && nearestDestStoppage != null) {
-        await _getPolyline(nearestSourceStoppage!, nearestDestStoppage!, "bus_route", "DRIVE");
+        await _getPolyline(nearestSourceStoppage!, nearestDestStoppage!, "bus_route", "TRANSIT");
       }
 
       _addMarkers();
