@@ -75,7 +75,7 @@ class Trip(models.Model):
     route_id = models.ForeignKey('Route', on_delete=models.CASCADE)
     arrival_time = models.DateTimeField()
     trip_no = models.PositiveIntegerField(unique=True, editable=False)  # Auto-generated
-    timestamp = models.DateTimeField(auto_now_add=True)
+    timestamp = models.DateTimeField()  # No auto_now_add=True
 
     def save(self, *args, **kwargs):
         if not self.trip_no:

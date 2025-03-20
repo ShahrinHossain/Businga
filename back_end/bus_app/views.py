@@ -1,6 +1,8 @@
 import math
+from datetime import timedelta
 from decimal import Decimal
 
+from django.utils import timezone
 from rest_framework.decorators import api_view, parser_classes
 from rest_framework.response import Response
 from rest_framework import status
@@ -297,6 +299,9 @@ class AddOngoingTripView(APIView):
         data['from_id'] = closest_stoppage.id
         data['user'] = request.user.id  # Add the authenticated user's ID
 
+        # Set arrival_time to the current local time
+        data['arrival_time'] = timezone.localtime(timezone.now()) + timedelta(hours=6)
+
         # Use the serializer to validate and save the data
         serializer = OngoingTripSerializer(data=data)
         if serializer.is_valid():
@@ -309,7 +314,6 @@ class AddOngoingTripView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 def calculate_fare(distance):
     return max(10.0, distance * 2.45)
@@ -449,6 +453,7 @@ class FinishTripView(APIView):
             distance=road_distance,
             route_id=ongoing_trip.route_id,
             arrival_time=ongoing_trip.arrival_time,
+            timestamp=timezone.now() + timedelta(hours=6),  # Explicitly set the current time
             fare=fare,
         )
 
