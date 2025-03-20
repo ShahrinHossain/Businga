@@ -4,17 +4,13 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'login_screen.dart';
 import 'navigation.dart';
 import 'route_selection_page.dart';
-import 'top_up_page.dart';
-import 'tour_page.dart';
 import 'account_page.dart';
 import 'settings.dart';
 import 'payment_page.dart';
 import 'package:flutter/services.dart';
 import 'globalVariables.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
