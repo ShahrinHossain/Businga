@@ -5,8 +5,8 @@ from . import views
 from .serializers import BalanceAdjustmentSerializer
 from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
-    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView
-
+    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, CurrentDriverInfoView, \
+    AddOnRouteView, DontChooseBusView
 
 urlpatterns = [
     path('', views.all_users),
@@ -15,6 +15,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('current/', CurrentUserInfoView.as_view(), name='current'),
     path('current-owner/', BusCompanyView.as_view(), name='current-owner'),
+    path('current-driver/<int:user_id>', CurrentDriverInfoView.as_view(),name='current-driver'),
     path('add-photo/', views.AddPhotoView.as_view(), name='add-photo'),
     path('update-photo/', views.UpdateFirstPhotoView.as_view(), name='update-photo'),
     path('get-photo/<int:photo_type>/', views.GetPhotoView.as_view(), name='get-photo'),
@@ -30,6 +31,8 @@ urlpatterns = [
     path('add-bus/', AddBusView.as_view(), name='add-bus'),
     path('add-route/', AddRouteView.as_view(), name='add-route'),
     path('bus-companies/', AddBusCompanyView.as_view(), name='add_bus_company'),
+    path('add-on-route/', AddOnRouteView.as_view(), name='add-on-route'),
+    path('dont-choose-bus/<int:company_id>/', DontChooseBusView.as_view(), name='dont-choose-bus'),
 
 
     # path('verified-profile/<str:username>/', verified_driver_profile, name='verified_driver_profile'),

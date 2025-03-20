@@ -7,7 +7,7 @@ import 'home_screen_driver.dart';
 import 'home_screen.dart';
 import 'home_screen_owner.dart';
 import 'login_screen.dart';
-import 'home_screen_owner.dart';
+import 'start_bus.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -48,20 +48,35 @@ class _LoadingScreenState extends State<LoadingScreen> {
       if (response.statusCode == 200) {
         final userData = json.decode(response.body);
         String role = userData['profile']['role'] ?? '';
+        bool in_route = userData['profile']['in_route'] ?? '';
+        int user_id = userData['id'] ?? '';
 
         if (role == 'user') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => HomeScreen()),
           );
         } else if (role == 'driver') {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => DriverHomeScreen()),
-          );
+          if(in_route == true) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => DriverHomeScreen()),
+            );
+          }
+          else
+          {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => StartBus(userId: user_id)),
+            );
+          }
         } else if (role == 'owner') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => BusOwnerHomeScreen()),
           );
-        } else {
+        } else if (role == 'admin') {
+          // Navigator.of(context).pushReplacement(
+          //   MaterialPageRoute(builder: (context) => BusOwnerAdminScreen()),
+          // );
+        }
+        else {
           // Handle unknown role (optional)
           print('Unknown role: $role');
         }

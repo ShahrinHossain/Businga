@@ -197,3 +197,14 @@ class Photo(models.Model):
 
     def __str__(self):
         return f"Photo {self.id} - Type {self.type} for {self.user.username}"
+
+class OnRoute(models.Model):
+    bus_id = models.ForeignKey(Bus, on_delete=models.CASCADE, null=False, blank=False)
+    driver_id = models.ForeignKey(DriverProfile, on_delete=models.CASCADE, null=False, blank=False)
+    location = models.CharField(max_length=255, null=True, blank=True)
+    company_id = models.ForeignKey(BusCompany, on_delete=models.CASCADE, null=True, blank=True)
+    paused = models.BooleanField(default=False)
+    passengers = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"OnRoute: Bus {self.bus_id.registration_no} | Driver {self.driver_id.name} | Location {self.location}"

@@ -29,10 +29,10 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus
+from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus, OnRoute
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
     ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, \
-    DriverProfile, PhotoSerializer, DriverProfileSerializer
+    DriverProfile, PhotoSerializer, DriverProfileSerializer, OnRouteSerializer
 
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -113,6 +113,22 @@ class DriverListView(APIView):
 
         return Response(driver_serializer.data, status=status.HTTP_200_OK)
 
+class CurrentDriverInfoView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request, user_id):
+        # Fetch drivers by matching the company ID directly
+        driver = DriverProfile.objects.filter(user_id=user_id).first()
+
+        # If no drivers found, return an error
+        # if not driver.exists():
+        #     return Response({"error": "No driver found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the driver data
+        driver_serializer = DriverProfileSerializer(driver)
+
+        return Response(driver_serializer.data, status=status.HTTP_200_OK)
+
 class BusListView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
 
@@ -123,6 +139,25 @@ class BusListView(APIView):
         # If no buses found, return an error
         if not buses.exists():
             return Response({"error": "No buses found for the given company."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the bus data
+        bus_serializer = BusSerializer(buses, many=True)
+
+        return Response(bus_serializer.data, status=status.HTTP_200_OK)
+
+class DontChooseBusView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request, company_id):
+        # Get all buses that are currently on route for the given company
+        on_route_buses = OnRoute.objects.filter(company_id=company_id).values_list('bus_id', flat=True)
+
+        # Filter buses that are on route
+        buses = Bus.objects.filter(id__in=on_route_buses, company_id=company_id)
+
+        # If no buses found, return an error
+        if not buses.exists():
+            return Response({"error": "No buses on route for the given company."}, status=status.HTTP_404_NOT_FOUND)
 
         # Serialize the bus data
         bus_serializer = BusSerializer(buses, many=True)
@@ -627,3 +662,41 @@ class GetPhotoView(APIView):
         except Exception as e:
             return Response({"error": f"Error decoding image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class AddOnRouteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Extract data from request
+        bus_id = request.data.get('bus_id')
+        driver_id = request.data.get('driver_id')
+        location = request.data.get('location')
+        company_id = request.data.get('company_id')
+
+        # Ensure bus_id and driver_id are provided
+        if not bus_id or not driver_id:
+            return Response({"error": "Bus ID and Driver ID are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the OnRoute object
+        on_route_data = {
+            'bus_id': bus_id,
+            'driver_id': driver_id,
+            'location': location if location else None,  # Set location to None if it's empty
+            'company_id': company_id
+        }
+
+        # Validate the data with the serializer
+        serializer = OnRouteSerializer(data=on_route_data)
+
+        if serializer.is_valid():
+            # Save the OnRoute entry
+            serializer.save()
+
+            # **Update Profile's in_route field**
+            profile = get_object_or_404(Profile, user_id=driver_id)
+            profile.in_route = True
+            profile.save()
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
