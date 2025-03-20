@@ -627,3 +627,55 @@ class GetPhotoView(APIView):
         except Exception as e:
             return Response({"error": f"Error decoding image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
+class FindNearestStoppage(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        latitude = request.query_params.get("latitude")
+        longitude = request.query_params.get("longitude")
+        print("HIT")
+
+        # Validate inputs
+        if latitude is None or longitude is None:
+            return Response({"error": "Latitude and longitude are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+        except ValueError:
+            return Response({"error": "Invalid latitude or longitude format."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find the nearest stoppage to the provided latitude and longitude
+        nearest_stoppage = None
+        min_distance = float("inf")
+
+        for stoppage in Stoppage.objects.all():
+            distance = math.sqrt(
+                (float(stoppage.latitude) - latitude) ** 2 +
+                (float(stoppage.longitude) - longitude) ** 2
+            )
+            if distance < min_distance:
+                min_distance = distance
+                nearest_stoppage = stoppage
+
+        if not nearest_stoppage:
+            return Response({"error": "No stoppages found to match the destination."}, status=status.HTTP_404_NOT_FOUND)
+
+        print(latitude, longitude)
+        print(nearest_stoppage.latitude , nearest_stoppage.longitude)
+
+
+        return Response(
+            {
+                "message": "Nearest stoppage found.",
+                "stoppage": {
+                    "id": nearest_stoppage.id,
+                    "name": nearest_stoppage.name,
+                    "latitude": nearest_stoppage.latitude,
+                    "longitude": nearest_stoppage.longitude,
+                    "queue_length": nearest_stoppage.queue_length,
+                },
+            },
+            status=status.HTTP_200_OK,
+        )
