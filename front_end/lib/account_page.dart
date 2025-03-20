@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'active_trip.dart';
 import 'globalVariables.dart';
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
@@ -29,7 +30,7 @@ class _AccountPageState extends State<AccountPage> {
 
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/users/last-trips/'),
+        Uri.parse('$baseUrl/users/list-trips/'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -37,8 +38,9 @@ class _AccountPageState extends State<AccountPage> {
       );
 
       if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
         setState(() {
-          trips = json.decode(response.body);
+          trips = data['trips']; // Extract the 'trips' array from the response
           isLoading = false;
         });
       } else {
@@ -82,29 +84,38 @@ class _AccountPageState extends State<AccountPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Active Trip Card (Bigger for Call-to-Action)
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              color: Colors.white,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(25),
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.directions_car, size: 60, color: Color(0xFF006B5F)),
-                    SizedBox(height: 10),
-                    Text(
-                      'Active Trip',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    SizedBox(height: 5),
-                    Text(
-                      'No active trips at the moment',
-                      style: TextStyle(fontSize: 16, color: Colors.black54),
-                    ),
-                  ],
+            // Active Trip Card (Navigate to ActiveTripPage on Tap)
+            GestureDetector(
+              onTap: () {
+                // Navigate to ActiveTripPage
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ActiveTrip()),
+                );
+              },
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                color: Colors.white,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(25),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.directions_car, size: 60, color: Color(0xFF006B5F)),
+                      SizedBox(height: 10),
+                      Text(
+                        'Active Trip',
+                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        'No active trips at the moment',
+                        style: TextStyle(fontSize: 16, color: Colors.black54),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -132,7 +143,7 @@ class _AccountPageState extends State<AccountPage> {
                               Column(
                                 children: [
                                   Text(
-                                    trip['from_stoppage'],
+                                    trip['from_stoppage']['name'], // Access nested 'from_stoppage' name
                                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 4),
@@ -148,11 +159,10 @@ class _AccountPageState extends State<AccountPage> {
                                   ),
                                 ],
                               ),
-                              // Line Between Source and Destination
                               Column(
                                 children: [
                                   Text(
-                                    trip['to_stoppage'],
+                                    trip['to_stoppage']['name'], // Access nested 'to_stoppage' name
                                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 4),
@@ -171,27 +181,26 @@ class _AccountPageState extends State<AccountPage> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          // Move Line Between Source and Destination here
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Text(
-                                '─────────── ',
+                                '──────── ',
                                 style: TextStyle(color: Colors.black38, fontSize: 18),
                               ),
                               Text(
-                                '${trip['distance']} km',
+                                '${trip['distance']} km', // Display distance
                                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
                               ),
                               const Text(
-                                ' ───────────',
+                                ' ────────',
                                 style: TextStyle(color: Colors.black38, fontSize: 18),
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '${trip['fare']} BDT',
+                            '${trip['fare']} BDT', // Display fare
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
                           ),
                         ],
