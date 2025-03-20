@@ -8,6 +8,7 @@ import 'home_screen.dart';
 import 'home_screen_owner.dart';
 import 'login_screen.dart';
 import 'home_screen_owner.dart';
+import 'home_screen_admin.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -51,7 +52,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
 
         if (role == 'user') {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreen()),
+            MaterialPageRoute(builder: (context) => HomeScreenAdmin()),
           );
         } else if (role == 'driver') {
           Navigator.of(context).pushReplacement(
