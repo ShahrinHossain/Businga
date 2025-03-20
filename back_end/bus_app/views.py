@@ -814,3 +814,22 @@ class ListLastTrips(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+class DontChooseBusView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request, company_id):
+        # Get all buses that are currently on route for the given company
+        on_route_buses = OnRoute.objects.filter(company_id=company_id).values_list('bus_id', flat=True)
+
+        # Filter buses that are on route
+        buses = Bus.objects.filter(id__in=on_route_buses, company_id=company_id)
+
+        # If no buses found, return an error
+        if not buses.exists():
+            return Response({"error": "No buses on route for the given company."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the bus data
+        bus_serializer = BusSerializer(buses, many=True)
+
+        return Response(bus_serializer.data, status=status.HTTP_200_OK)

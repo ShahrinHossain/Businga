@@ -6,8 +6,7 @@ from .serializers import BalanceAdjustmentSerializer
 from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
     AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, \
-    FindNearestStoppage, CurrentTripView, ListLastTrips, AddOnRouteView, CurrentDriverInfoView
-
+    FindNearestStoppage, CurrentTripView, ListLastTrips, AddOnRouteView, CurrentDriverInfoView, DontChooseBusView
 
 urlpatterns = [
     path('', views.all_users),
@@ -33,7 +32,7 @@ urlpatterns = [
     path('add-route/', AddRouteView.as_view(), name='add-route'),
     path('bus-companies/', AddBusCompanyView.as_view(), name='add_bus_company'),
     path('add-on-route/', AddOnRouteView.as_view(), name='add-on-route'),
-    # path('dont-choose-bus/<int:company_id>/', DontChooseBusView.as_view(), name='dont-choose-bus'),
+    path('dont-choose-bus/<int:company_id>/', DontChooseBusView.as_view(), name='dont-choose-bus'),
 
     path('get-nearest-stoppage/', FindNearestStoppage.as_view(), name='get-nearest-stoppage'),
     path('get-current-trip/', views.CurrentTripView.as_view(), name='get-current-trip'),
