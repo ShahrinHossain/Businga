@@ -6,7 +6,8 @@ from .serializers import BalanceAdjustmentSerializer
 from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
     AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, \
-    FindNearestStoppage, CurrentTripView, ListLastTrips, AddOnRouteView, CurrentDriverInfoView, DontChooseBusView
+    FindNearestStoppage, CurrentTripView, ListLastTrips, AddOnRouteView, CurrentDriverInfoView, DontChooseBusView, \
+    CheckRouteView
 
 urlpatterns = [
     path('', views.all_users),
@@ -38,6 +39,7 @@ urlpatterns = [
     path('get-current-trip/', views.CurrentTripView.as_view(), name='get-current-trip'),
 
     path('list-trips/', ListLastTrips.as_view(), name='list-trips'),
+    path('check-route/', CheckRouteView.as_view(), name='check-route'),
 
     # path('verified-profile/<str:username>/', verified_driver_profile, name='verified_driver_profile'),
 ]

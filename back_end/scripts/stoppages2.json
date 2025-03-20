@@ -1,0 +1,148 @@
+[
+
+    {
+        "name": "Gabtoli",
+        "latitude": 23.7776,
+        "longitude": 90.3440,
+        "queue_length": 0
+    },
+    {
+        "name": "Mirpur 1",
+        "latitude": 23.7955,
+        "longitude": 90.3532,
+        "queue_length": 0
+    },
+    {
+        "name": "Sony Cinema Hall",
+        "latitude": 23.8005,
+        "longitude": 90.3552,
+        "queue_length": 0
+    },
+
+    {
+        "name": "Mirpur 2",
+        "latitude": 23.8066,
+        "longitude": 90.3563,
+        "queue_length": 0     },
+
+    {
+        "name": "Mirpur 10",
+        "latitude": 23.8113,
+        "longitude": 90.3674,
+        "queue_length": 0
+    },
+    {
+        "name": "Mirpur 11",
+        "latitude": 23.8168,
+        "longitude": 90.3675,
+        "queue_length": 0
+    },
+    {
+        "name": "Purobi",
+        "latitude": 23.8198,
+        "longitude": 90.3649,
+        "queue_length": 0
+    },
+    {
+        "name": "Kalshi",
+        "latitude": 23.8176,
+        "longitude": 90.3670,
+        "queue_length": 0
+    },
+    {
+        "name": "ECB Square ",
+        "latitude": 23.8223,
+        "longitude": 90.3654,
+        "queue_length": 0
+    },
+    {
+        "name": "MES",
+        "latitude": 23.8041,
+        "longitude": 90.4152,
+        "queue_length": 0
+    },
+    {
+        "name": "Shewra",
+        "latitude": 23.8192,
+        "longitude": 90.4150,
+        "queue_length": 0
+    },
+    {
+        "name": "Kuril Bishwa Road",
+        "latitude": 23.8212,
+        "longitude": 90.4195,
+        "queue_length": 0
+    },
+    {
+        "name": "Khilkhet",
+        "latitude": 23.8311,
+        "longitude": 90.4243,
+        "queue_length": 0
+    },
+    {
+        "name": "Airport",
+        "latitude": 23.8434,
+        "longitude": 90.4029,
+        "queue_length": 0
+    },
+    {
+        "name": "Jashimuddin (Uttara)",
+        "latitude": 23.8728,
+        "longitude": 90.3857,
+        "queue_length": 0
+    },
+    {
+        "name": "Rajlakshmi",
+        "latitude": 23.8644,
+        "longitude": 90.3999,
+        "queue_length": 0
+    },
+    {
+        "name": "Azampur",
+        "latitude": 23.8678,
+        "longitude": 90.4005,
+        "queue_length": 0
+    },
+    {
+        "name": "House Building",
+        "latitude": 23.8742,
+        "longitude": 90.4007,
+        "queue_length": 0
+    },
+    {
+        "name": "Abdullahpur",
+        "latitude": 23.8947,
+        "longitude": 90.3863,
+        "queue_length": 0
+    },
+    {
+        "name": "Tongi",
+        "latitude": 23.8900,
+        "longitude": 90.4073,
+        "queue_length": 0
+    },
+    {
+        "name": "Station Road",
+        "latitude": 23.8946,
+        "longitude": 90.4046,
+        "queue_length": 0
+    },
+    {
+        "name": "Mill Gate",
+        "latitude": 23.9014,
+        "longitude": 90.4103,
+        "queue_length": 0
+    },
+    {
+        "name": "Board Bazar",
+        "latitude": 23.9450,
+        "longitude": 90.3828,
+        "queue_length": 0
+    },
+    {
+        "name": "Gazipur Chourasta",
+        "latitude": 23.9899,
+        "longitude": 90.3816,
+        "queue_length": 0
+    }
+]

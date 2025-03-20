@@ -130,5 +130,149 @@
         "latitude": 23.9899,
         "longitude": 90.3816,
         "queue_length": 0
+    },
+    {
+        "name": "Gabtoli",
+        "latitude": 23.7776,
+        "longitude": 90.3440,
+        "queue_length": 0
+    },
+    {
+        "name": "Mirpur 1",
+        "latitude": 23.7955,
+        "longitude": 90.3532,
+        "queue_length": 0
+    },
+    {
+        "name": "Sony Cinema Hall",
+        "latitude": 23.8005,
+        "longitude": 90.3552,
+        "queue_length": 0
+    },
+    {
+        "name": "Mirpur 2",
+        "latitude": 23.8066,
+        "longitude": 90.3563,
+        "queue_length": 0
+    },
+    {
+        "name": "Mirpur 10",
+        "latitude": 23.8113,
+        "longitude": 90.3674,
+        "queue_length": 0
+    },
+    {
+        "name": "Mirpur 11",
+        "latitude": 23.8168,
+        "longitude": 90.3675,
+        "queue_length": 0
+    },
+    {
+        "name": "Purobi",
+        "latitude": 23.8198,
+        "longitude": 90.3649,
+        "queue_length": 0
+    },
+    {
+        "name": "Kalshi",
+        "latitude": 23.8176,
+        "longitude": 90.3670,
+        "queue_length": 0
+    },
+    {
+        "name": "ECB Square",
+        "latitude": 23.8223,
+        "longitude": 90.3654,
+        "queue_length": 0
+    },
+    {
+        "name": "Sign Board",
+        "latitude": 23.6921,
+        "longitude": 90.4818,
+        "queue_length": 0
+    },
+    {
+        "name": "Shonir Akhra",
+        "latitude": 23.7076,
+        "longitude": 90.4538,
+        "queue_length": 0
+    },
+    {
+        "name": "Jatrabari",
+        "latitude": 23.7106,
+        "longitude": 90.4349,
+        "queue_length": 0
+    },
+    {
+        "name": "Mugdapara",
+        "latitude": 23.7314,
+        "longitude": 90.4349,
+        "queue_length": 0
+    },
+    {
+        "name": "Bashabo",
+        "latitude": 23.7426,
+        "longitude": 90.4308,
+        "queue_length": 0
+    },
+    {
+        "name": "Khilgaon",
+        "latitude": 23.7566,
+        "longitude": 90.4644,
+        "queue_length": 0
+    },
+    {
+        "name": "Malibagh Railgate",
+        "latitude": 23.7496,
+        "longitude": 90.4126,
+        "queue_length": 0
+    },
+    {
+        "name": "Hazipara",
+        "latitude": 23.8631,
+        "longitude": 90.4131,
+        "queue_length": 0
+    },
+    {
+        "name": "Rampura Bazar",
+        "latitude": 23.7607,
+        "longitude": 90.4192,
+        "queue_length": 0
+    },
+    {
+        "name": "Rampura Bridge",
+        "latitude": 23.7680,
+        "longitude": 90.4218,
+        "queue_length": 0
+    },
+    {
+        "name": "Merul Badda",
+        "latitude": 23.7724,
+        "longitude": 90.4225,
+        "queue_length": 0
+    },
+    {
+        "name": "Uttar Badda",
+        "latitude": 23.7820,
+        "longitude": 90.4231,
+        "queue_length": 0
+    },
+    {
+        "name": "Bashtola",
+        "latitude": 23.8321,
+        "longitude": 90.4292,
+        "queue_length": 0
+    },
+    {
+        "name": "Notunbazar",
+        "latitude": 23.8007,
+        "longitude": 90.4262,
+        "queue_length": 0
+    },
+    {
+        "name": "Jamuna Future Park",
+        "latitude": 23.8135,
+        "longitude": 90.4242,
+        "queue_length": 0
     }
 ]

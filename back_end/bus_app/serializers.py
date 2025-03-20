@@ -4,7 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverProfile, Photo, OnRoute
+from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverProfile, Photo, OnRoute, \
+    RouteStoppage
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -113,10 +114,17 @@ class BusSerializer(serializers.ModelSerializer):
         model = Bus
         fields = ['id', 'registration_no', 'condition', 'ac_status', 'location', 'company']
 
+class RouteStoppageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RouteStoppage
+        fields = ['stoppage', 'order']
+
 class RouteSerializer(serializers.ModelSerializer):
+    stoppages = RouteStoppageSerializer(source='routestoppage_set', many=True, read_only=True)
+
     class Meta:
         model = Route
-        fields = ['stoppages']
+        fields = ['id', 'stoppages']
 
 class BusCompanySerializer(serializers.ModelSerializer):
     class Meta:

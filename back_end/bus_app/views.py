@@ -25,7 +25,7 @@ from rest_framework import status
 # from django.contrib.sites
 import requests
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
@@ -514,6 +514,12 @@ class AddBusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Route, Stoppage, RouteStoppage
+from .serializers import RouteSerializer
+
 class AddRouteView(APIView):
     permission_classes = []
     authentication_classes = []
@@ -526,27 +532,31 @@ class AddRouteView(APIView):
 
         # Validate that all stoppages exist
         stoppages = []
-        for stoppage_id in stoppages_ids:
+        for index, stoppage_id in enumerate(stoppages_ids, start=1):
             try:
                 stoppage = Stoppage.objects.get(id=stoppage_id)
-                stoppages.append(stoppage.id)
+                stoppages.append({
+                    "stoppage": stoppage.id,
+                    "order": index  # Assign order based on position in the list
+                })
             except Stoppage.DoesNotExist:
                 return Response({"error": f"Stoppage with ID {stoppage_id} not found."},
                                 status=status.HTTP_400_BAD_REQUEST)
 
         # Create the route
-        route_data = {
-            'stoppages': stoppages  # ManyToMany relation will handle adding multiple stoppages
-        }
-        # print(route_data)
-        # print('here')
+        route = Route.objects.create()  # Create a new route instance
 
-        serializer = RouteSerializer(data=route_data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # Add stoppages with their order to the route
+        for item in stoppages:
+            RouteStoppage.objects.create(
+                route=route,
+                stoppage_id=item["stoppage"],
+                order=item["order"]
+            )
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Serialize the route and return the response
+        serializer = RouteSerializer(route)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class AddBusCompanyView(APIView):
@@ -838,3 +848,120 @@ class DontChooseBusView(APIView):
         bus_serializer = BusSerializer(buses, many=True)
 
         return Response(bus_serializer.data, status=status.HTTP_200_OK)
+
+
+class CheckAllRouteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the from_stoppage_id and to_stoppage_id from query parameters
+        from_stoppage_id = request.query_params.get('from_stoppage_id')
+        to_stoppage_id = request.query_params.get('to_stoppage_id')
+
+        if not from_stoppage_id or not to_stoppage_id:
+            return Response(
+                {"error": "Both 'from_stoppage_id' and 'to_stoppage_id' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get the Stoppage objects
+        from_stoppage = get_object_or_404(Stoppage, id=from_stoppage_id)
+        to_stoppage = get_object_or_404(Stoppage, id=to_stoppage_id)
+
+        # Find routes that contain both stoppages
+        routes = Route.objects.filter(stoppages=from_stoppage).filter(stoppages=to_stoppage)
+
+        valid_routes = []
+        for route in routes:
+            # Get the order of the from_stoppage and to_stoppage in the route
+            from_order = RouteStoppage.objects.get(route=route, stoppage=from_stoppage).order
+            to_order = RouteStoppage.objects.get(route=route, stoppage=to_stoppage).order
+
+            # Check if the order of from_stoppage is less than to_stoppage
+            if from_order < to_order:
+                # Get all stoppages in the route in order
+                route_stoppages = RouteStoppage.objects.filter(route=route).order_by('order')
+                coordinates_list = [
+                    {
+                        'name': rs.stoppage.name,
+                        'latitude': float(rs.stoppage.latitude),
+                        'longitude': float(rs.stoppage.longitude),
+                    }
+                    for rs in route_stoppages
+                ]
+
+                valid_routes.append({
+                    'route_id': route.id,
+                    'coordinates_list': coordinates_list,
+                })
+
+        if valid_routes:
+            return Response(
+                {
+                    "message": "Valid route(s) found.",
+                    "valid_routes": valid_routes,
+                },
+                status=status.HTTP_200_OK,
+            )
+        else:
+            return Response(
+                {"error": "No valid route found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+class CheckRouteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Get the from_stoppage_id and to_stoppage_id from query parameters
+        from_stoppage_id = request.query_params.get('from_stoppage_id')
+        to_stoppage_id = request.query_params.get('to_stoppage_id')
+
+        if not from_stoppage_id or not to_stoppage_id:
+            return Response(
+                {"error": "Both 'from_stoppage_id' and 'to_stoppage_id' are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get the Stoppage objects
+        from_stoppage = get_object_or_404(Stoppage, id=from_stoppage_id)
+        to_stoppage = get_object_or_404(Stoppage, id=to_stoppage_id)
+
+        # Find routes that contain both stoppages
+        routes = Route.objects.filter(stoppages=from_stoppage).filter(stoppages=to_stoppage)
+
+        for route in routes:
+            # Get the order of the from_stoppage and to_stoppage in the route
+            from_order = RouteStoppage.objects.get(route=route, stoppage=from_stoppage).order
+            to_order = RouteStoppage.objects.get(route=route, stoppage=to_stoppage).order
+
+            # Check if the order of from_stoppage is less than to_stoppage
+            if from_order < to_order:
+                # Get all stoppages in the route in order
+                route_stoppages = RouteStoppage.objects.filter(route=route).order_by('order')
+                coordinates_list = [
+                    {
+                        'name': rs.stoppage.name,
+                        'latitude': float(rs.stoppage.latitude),
+                        'longitude': float(rs.stoppage.longitude),
+                    }
+                    for rs in route_stoppages
+                ]
+
+                # Return the first valid route found
+                return Response(
+                    {
+                        "message": "Valid route found.",
+                        "route": {
+                            "route_id": route.id,
+                            "coordinates_list": coordinates_list,
+                        },
+                    },
+                    status=status.HTTP_200_OK,
+                )
+
+        # If no valid route is found
+        return Response(
+            {"error": "No valid route found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )

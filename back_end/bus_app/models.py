@@ -97,8 +97,16 @@ class Transaction(models.Model):
         return f"Transaction {self.id} for {self.amount}"
 
 
+class RouteStoppage(models.Model):
+    route = models.ForeignKey('Route', on_delete=models.CASCADE)
+    stoppage = models.ForeignKey('Stoppage', on_delete=models.CASCADE)
+    order = models.PositiveIntegerField()
+
+    class Meta:
+        ordering = ['order']
+
 class Route(models.Model):
-    stoppages = models.ManyToManyField('Stoppage')
+    stoppages = models.ManyToManyField('Stoppage', through='RouteStoppage')
 
     def __str__(self):
         return f"Route {self.id}"
