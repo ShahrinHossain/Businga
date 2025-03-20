@@ -1,134 +1,134 @@
 [
     {
         "name": "Azimpur",
-        "latitude": 23.7278,
-        "longitude": 90.3845,
+        "latitude": 23.7286,
+        "longitude": 90.3854,
         "queue_length": 0
     },
     {
         "name": "Nilkhet",
-        "latitude": 23.7330,
-        "longitude": 90.3928,
+        "latitude": 23.7321,
+        "longitude": 90.3852,
         "queue_length": 0
     },
     {
         "name": "New Market",
-        "latitude": 23.7361,
-        "longitude": 90.3842,
+        "latitude": 23.7332,
+        "longitude": 90.3838,
         "queue_length": 0
     },
     {
         "name": "City College",
-        "latitude": 23.7389,
-        "longitude": 90.3815,
+        "latitude": 23.7397,
+        "longitude": 90.3826,
         "queue_length": 0
     },
     {
         "name": "Kalabagan",
-        "latitude": 23.7415,
-        "longitude": 90.3773,
+        "latitude": 23.7494,
+        "longitude": 90.3831,
         "queue_length": 0
     },
     {
         "name": "Banani",
-        "latitude": 23.7936,
-        "longitude": 90.4043,
+        "latitude": 23.7937,
+        "longitude": 90.4066,
         "queue_length": 0
     },
     {
         "name": "Kakali",
-        "latitude": 23.7980,
-        "longitude": 90.4130,
+        "latitude": 23.7952,
+        "longitude": 90.4008,
         "queue_length": 0
     },
     {
         "name": "MES",
-        "latitude": 23.8121,
-        "longitude": 90.4225,
+        "latitude": 23.8041,
+        "longitude": 90.4152,
         "queue_length": 0
     },
     {
         "name": "Shewra",
-        "latitude": 23.8186,
-        "longitude": 90.4265,
+        "latitude": 23.8192,
+        "longitude": 90.4150,
         "queue_length": 0
     },
     {
         "name": "Kuril Bishwa Road",
-        "latitude": 23.8281,
-        "longitude": 90.4265,
+        "latitude": 23.8212,
+        "longitude": 90.4195,
         "queue_length": 0
     },
     {
         "name": "Khilkhet",
-        "latitude": 23.8315,
-        "longitude": 90.4225,
+        "latitude": 23.8311,
+        "longitude": 90.4243,
         "queue_length": 0
     },
     {
         "name": "Airport",
-        "latitude": 23.8493,
-        "longitude": 90.4005,
+        "latitude": 23.8434,
+        "longitude": 90.4029,
         "queue_length": 0
     },
     {
         "name": "Jashimuddin (Uttara)",
-        "latitude": 23.8584,
-        "longitude": 90.3984,
+        "latitude": 23.8728,
+        "longitude": 90.3857,
         "queue_length": 0
     },
     {
         "name": "Rajlakshmi",
-        "latitude": 23.8650,
-        "longitude": 90.3960,
+        "latitude": 23.8644,
+        "longitude": 90.3999,
         "queue_length": 0
     },
     {
         "name": "Azampur",
-        "latitude": 23.8700,
-        "longitude": 90.3940,
+        "latitude": 23.8678,
+        "longitude": 90.4005,
         "queue_length": 0
     },
     {
         "name": "House Building",
-        "latitude": 23.8735,
-        "longitude": 90.3925,
+        "latitude": 23.8742,
+        "longitude": 90.4007,
         "queue_length": 0
     },
     {
         "name": "Abdullahpur",
-        "latitude": 23.8815,
-        "longitude": 90.3880,
+        "latitude": 23.8947,
+        "longitude": 90.3863,
         "queue_length": 0
     },
     {
         "name": "Tongi",
-        "latitude": 23.8915,
-        "longitude": 90.4020,
+        "latitude": 23.8900,
+        "longitude": 90.4073,
         "queue_length": 0
     },
     {
         "name": "Station Road",
-        "latitude": 23.8990,
-        "longitude": 90.4080,
+        "latitude": 23.8946,
+        "longitude": 90.4046,
         "queue_length": 0
     },
     {
         "name": "Mill Gate",
-        "latitude": 23.9050,
-        "longitude": 90.4120,
+        "latitude": 23.9014,
+        "longitude": 90.4103,
         "queue_length": 0
     },
     {
         "name": "Board Bazar",
-        "latitude": 23.9200,
-        "longitude": 90.4200,
+        "latitude": 23.9450,
+        "longitude": 90.3828,
         "queue_length": 0
     },
     {
         "name": "Gazipur Chourasta",
-        "latitude": 23.9990,
-        "longitude": 90.4200,
+        "latitude": 23.9899,
+        "longitude": 90.3816,
         "queue_length": 0
     }
 ]
