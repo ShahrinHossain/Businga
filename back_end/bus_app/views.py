@@ -29,10 +29,10 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo
+from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
     ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, \
-    DriverProfile, PhotoSerializer
+    DriverProfile, PhotoSerializer, DriverProfileSerializer
 
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -85,6 +85,49 @@ class CurrentUserInfoView(APIView):
     def get(self, request):
         serializer = UserInfoSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class BusCompanyView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            bus_company = BusCompany.objects.get(user=request.user)
+            serializer = BusCompanySerializer(bus_company)  # Pass BusCompany instance
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except BusCompany.DoesNotExist:
+            return Response({"error": "Bus company not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class DriverListView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request, company_id):
+        # Fetch drivers by matching the company ID directly
+        drivers = DriverProfile.objects.filter(company=company_id)
+
+        # If no drivers found, return an error
+        if not drivers.exists():
+            return Response({"error": "No drivers found for the given company."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the driver data
+        driver_serializer = DriverProfileSerializer(drivers, many=True)
+
+        return Response(driver_serializer.data, status=status.HTTP_200_OK)
+
+class BusListView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request, company_id):
+        # Fetch buses by matching the company ID
+        buses = Bus.objects.filter(company=company_id)
+
+        # If no buses found, return an error
+        if not buses.exists():
+            return Response({"error": "No buses found for the given company."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the bus data
+        bus_serializer = BusSerializer(buses, many=True)
+
+        return Response(bus_serializer.data, status=status.HTTP_200_OK)
 
 
 class AdjustBalanceView(APIView):

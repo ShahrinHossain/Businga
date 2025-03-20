@@ -29,8 +29,23 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
         if role == 'driver':
-            company = BusCompany.objects.get(id=company_id)  # Fetch company by ID
-            DriverProfile.create_driver(user, company, **validated_data)
+            company = None
+            if company_id:  # If company_id is provided, fetch the company
+                try:
+                    company = BusCompany.objects.get(id=company_id)
+                except BusCompany.DoesNotExist:
+                    raise serializers.ValidationError(f"BusCompany with ID {company_id} does not exist.")
+
+            # Pass only the necessary fields to create_driver
+            license_no = validated_data.pop('license_no', '')
+            DriverProfile.create_driver(user, company, license_no=license_no)  # No company_name passed
+        # if role == 'driver':
+        #     try:
+        #         company = BusCompany.objects.get(id=company_id)
+        #     except BusCompany.DoesNotExist:
+        #         raise serializers.ValidationError(f"BusCompany with ID {company_id} does not exist.")
+        #
+        #     DriverProfile.create_driver(user, company, **validated_data)
 
         elif role == 'owner':
             company_name = validated_data.pop('company_name')  # Owners must pass a name
@@ -64,9 +79,18 @@ class UserInfoSerializer(serializers.ModelSerializer):
             }
         return None
 
+# serializers.py
+class DriverProfileSerializer(serializers.ModelSerializer):
+    # You can add more fields here if needed
+    class Meta:
+        model = DriverProfile
+        fields = ['user_id', 'name', 'contact_no', 'license_no', 'company', 'date_of_birth', 'on_duty']
+
+
 class BalanceAdjustmentSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+
 class StoppageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stoppage
@@ -97,7 +121,7 @@ class RouteSerializer(serializers.ModelSerializer):
 class BusCompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = BusCompany
-        fields = ['id', 'name', 'owner_id', 'employee_count', 'income']
+        fields = ['id', 'name', 'user_id', 'employee_count', 'income']
 
 
 class PhotoSerializer(serializers.ModelSerializer):
