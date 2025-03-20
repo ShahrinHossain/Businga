@@ -5,7 +5,7 @@ from . import views
 from .serializers import BalanceAdjustmentSerializer
 from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
-    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView
+    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView
 
 
 urlpatterns = [
@@ -14,11 +14,12 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('current/', CurrentUserInfoView.as_view(), name='current'),
-
+    path('current-owner/', BusCompanyView.as_view(), name='current-owner'),
     path('add-photo/', views.AddPhotoView.as_view(), name='add-photo'),
     path('update-photo/', views.UpdateFirstPhotoView.as_view(), name='update-photo'),
     path('get-photo/<int:photo_type>/', views.GetPhotoView.as_view(), name='get-photo'),
-
+    path('drivers/<int:company_id>/', views.DriverListView.as_view(), name='driver-list'),
+    path('buses/<int:company_id>/', views.BusListView.as_view(), name='bus-list'),
     path('update-balance/', AdjustBalanceView.as_view(), name='update-balance'),
     path('make-payment/', AddToBalanceView.as_view(), name='make-payment'),
     path('add-stoppage/', StoppageCreateView.as_view(), name='add-stoppage'),

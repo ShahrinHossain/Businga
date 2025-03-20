@@ -1,9 +1,13 @@
+import 'package:businga1/driver_table_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
+import 'add_bus_screen.dart';
+import 'bus_table_screen.dart';
 import 'globalVariables.dart';
+import 'add_driver_screen.dart';
 
 var baseUrl = getIp(); // Dynamically fetch the base URL
 
@@ -16,7 +20,9 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
   int _selectedIndex = 0;
   String? _balance; // Stores the fetched balance
   String? _companyName; // Stores the company name
-  bool _isLoading = true; // Tracks if the data is being loaded
+  bool _isLoading = true;// Tracks if the data is being loaded
+  int? _companyId;
+
   String? _username; // Stores the current user's username
 
   // Function to get the stored JWT token from SharedPreferences
@@ -51,7 +57,7 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
           // Extract values from the response and assign them to the variables
           _companyName = userData['name'] ?? 'N/A'; // Using 'name' for company name
           _balance = userData['income']?.toString() ?? 'N/A'; // Using 'income' for balance
-
+          _companyId = userData['id'];
           _isLoading = false;
         });
       } else {
@@ -164,20 +170,64 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 10),
+                      // Add a new button for viewing all drivers
+                      GestureDetector(
+                        onTap: () {
+                          // Handle the action when this button is clicked
+                          print("View All Buses clicked");
+                          // You can navigate to a screen that lists all drivers, for example:
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => BusTableScreen(onTap: () {  }, companyId: _companyId)),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,  // Full width
+                          height: 60,  // Less height
+                          decoration: BoxDecoration(
+                            color: Color(0x8C3A534D), // Same color
+                            borderRadius: BorderRadius.circular(15), // Rounded corners
+                          ),
+                          child: Center(
+                            child: Text(
+                              'View All Vehicles',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildFeatureCard(context, 'Add Bus', Icons.directions_bus, Color(
-                              0x8C3A534D), () {
-                            // Handle Add Bus
-                            print("Add Bus clicked");
-                          }),
-                          _buildFeatureCard(context, 'Delete Bus', Icons.delete, Color(0x8C3A534D), () {
-                            // Handle Delete Bus
-                            print("Delete Bus clicked");
-                          }),
+                          _buildFeatureCard(
+                            context,
+                            'Add Bus',
+                            Icons.directions_bus,
+                            Color(0x8C3A534D),
+                                () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddBusScreen(companyId: _companyId),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildFeatureCard(
+                            context,
+                            'Delete Bus',
+                            Icons.delete,
+                            Color(0x8C3A534D),
+                                () {
+                              // Handle Delete Bus
+                              print("Delete Bus clicked");
+                            },
+                          ),
                         ],
                       ),
+
+
                       SizedBox(height: 20),
                       // Driver/Driver Assistant Management Section
                       Text(
@@ -185,19 +235,50 @@ class _BusOwnerHomeScreenState extends State<BusOwnerHomeScreen> {
                         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 10),
+// Add a new button for viewing all drivers
+                      GestureDetector(
+                        onTap: () {
+                          // Handle the action when this button is clicked
+                          print("View All Drivers clicked");
+                          // You can navigate to a screen that lists all drivers, for example:
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => DriverTableScreen(onTap: () {  }, companyId: _companyId)),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,  // Full width
+                          height: 60,  // Less height
+                          decoration: BoxDecoration(
+                            color: Color(0x8C3A534D), // Same color
+                            borderRadius: BorderRadius.circular(15), // Rounded corners
+                          ),
+                          child: Center(
+                            child: Text(
+                              'View All Drivers',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           _buildFeatureCard(context, 'Add Driver', Icons.person_add, Color(0x8C3A534D), () {
-                            // Handle Add Driver
-                            print("Add Driver clicked");
+                            print('Company ID: $_companyId'); // Print the company ID
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => AddDriverScreen(onTap: () {  }, companyId: _companyId)),
+                          );
                           }),
-                          _buildFeatureCard(context, 'Delete Driver', Icons.person_remove, Color(0x8C3A534D), () {
+                          _buildFeatureCard(context, 'Remove Driver', Icons.person_remove, Color(0x8C3A534D), () {
                             // Handle Delete Driver
                             print("Delete Driver clicked");
                           }),
                         ],
                       ),
+                      SizedBox(height: 20),
                     ],
                   ),
                 ),
