@@ -56,12 +56,12 @@ class UserSerializer(serializers.ModelSerializer):
             company_name = validated_data.pop('company_name')  # Owners must pass a name
             BusCompany.objects.create(user=user, name=company_name)  # Create company for owner
 
-            try:
-                owner_request = OwnerRequest.objects.get(email_address=user.email)
-                owner_request.status = True  # Set status to True
-                owner_request.save()  # Save the updated status
-            except ObjectDoesNotExist:
-                raise serializers.ValidationError(f"OwnerRequest with email {user.email} does not exist.")
+            # try:
+            #     owner_request = OwnerRequest.objects.get(email_address=user.email)
+            #     owner_request.status = True  # Set status to True
+            #     owner_request.save()  # Save the updated status
+            # except ObjectDoesNotExist:
+            #     raise serializers.ValidationError(f"OwnerRequest with email {user.email} does not exist.")
 
         Profile.create_profile(user, role)
         return user

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:businga1/top_up_page.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -174,7 +175,7 @@ class _ActiveTripState extends State<ActiveTrip> {
 
         setState(() {
           trip['distance'] = destDistanceTime["distance"]; // Update distance
-          trip['fare'] = (double.parse(srcDistanceTime["distance"]) * 2.45).toStringAsFixed(2); // Calculate fare
+          trip['fare'] = max(double.parse(srcDistanceTime["distance"]) * 2.45, 10).toStringAsFixed(2); // Calculate fare
           trip['arrival_time'] = destDistanceTime["duration"]; // Update travel time
         });
       }
@@ -597,29 +598,29 @@ class _ActiveTripState extends State<ActiveTrip> {
                           ),
                         ],
                       ),
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     Navigator.push(
-                      //       context,
-                      //       MaterialPageRoute(builder: (context) => TopUpPage()),
-                      //     );
-                      //   },
-                      //   style: ElevatedButton.styleFrom(
-                      //     backgroundColor: Colors.white,
-                      //     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                      //     shape: RoundedRectangleBorder(
-                      //       borderRadius: BorderRadius.circular(20),
-                      //     ),
-                      //   ),
-                      //   child: const Text(
-                      //     "End Journey",
-                      //     style: TextStyle(
-                      //       fontSize: 16,
-                      //       color: Colors.blueAccent,
-                      //       fontWeight: FontWeight.bold,
-                      //     ),
-                      //   ),
-                      // ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => TopUpPage()),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
+                        child: const Text(
+                          "End Journey",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],

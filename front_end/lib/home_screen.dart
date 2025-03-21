@@ -386,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage(), textColor: Colors.black),
+                          // _buildFeatureCard(context, 'Routes', Icons.directions, Colors.greenAccent, RouteSelectionPage(), textColor: Colors.black),
                           _buildFeatureCard(context, 'Top-up', Icons.account_balance_wallet, Colors.greenAccent, const Checkout(), textColor: Colors.black),
                         ],
                       ),
@@ -501,8 +501,8 @@ class _HomeScreenState extends State<HomeScreen> {
         color: color,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         child: SizedBox(
-          width: 150,
-          height: 150,
+          width: 335,
+          height: 100,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

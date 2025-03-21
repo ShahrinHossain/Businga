@@ -7,7 +7,7 @@ from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
     AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, \
     FindNearestStoppage, CurrentTripView, ListLastTrips, AddOnRouteView, CurrentDriverInfoView, DontChooseBusView, \
-    CheckRouteView, AddOwnerRequestView, FetchPendingOwnerRequestsView, \
+    CheckRouteView, AddOwnerRequestView, FetchPendingOwnerRequestsView \
 
 
 urlpatterns = [

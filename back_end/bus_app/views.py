@@ -31,7 +31,8 @@ from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus, OnRoute, OwnerRequest
+from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus, OnRoute, OwnerRequest, Route, \
+    RouteStoppage
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
     ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, \
     DriverProfile, PhotoSerializer, DriverProfileSerializer, OnRouteSerializer, OwnerRequestSerializer
