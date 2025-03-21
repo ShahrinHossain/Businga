@@ -5,11 +5,9 @@ from . import views
 from .serializers import BalanceAdjustmentSerializer
 from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
-    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, FindNearestStoppage, \
-    CurrentDriverInfoView, AddOnRouteView, DontChooseBusView
-
-
-
+    AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, \
+    FindNearestStoppage, \
+    CurrentDriverInfoView, AddOnRouteView, DontChooseBusView, AddOwnerRequestView, FetchPendingOwnerRequestsView
 
 urlpatterns = [
     path('', views.all_users),
@@ -38,6 +36,8 @@ urlpatterns = [
     path('dont-choose-bus/<int:company_id>/', DontChooseBusView.as_view(), name='dont-choose-bus'),
 
     path('get-nearest-stoppage/', FindNearestStoppage.as_view(), name='get-nearest-stoppage'),
+    path('add-owner-request/', AddOwnerRequestView.as_view(), name='add-owner-request'),
+    path('fetch-owner-request/', FetchPendingOwnerRequestsView.as_view(), name='fetch-owner-request'),
 
     # path('verified-profile/<str:username>/', verified_driver_profile, name='verified_driver_profile'),
 ]

@@ -208,3 +208,43 @@ class OnRoute(models.Model):
 
     def __str__(self):
         return f"OnRoute: Bus {self.bus_id.registration_no} | Driver {self.driver_id.name} | Location {self.location}"
+
+
+class OwnerRequest(models.Model):
+    # Personal Information
+    full_name = models.CharField(max_length=255)
+    phone_number = models.CharField(max_length=15)
+    email_address = models.CharField(max_length=255)
+    residential_address = models.TextField()
+    national_id = models.CharField(max_length=50, unique=True)  # National ID or Passport Number
+
+    # Business Information (if applicable)
+    business_name = models.CharField(max_length=255, blank=True, null=True)
+    business_registration_number = models.CharField(max_length=50, blank=True, null=True)
+    tax_identification_number = models.CharField(max_length=50, blank=True, null=True)  # TIN or GST Number
+
+    # Bus Ownership Details
+    brta_certificate_number = models.CharField(max_length=50, unique=True)
+
+    # Certification and Documentation (File Uploads)
+    brta_certificate_scan = models.TextField()
+    national_id_scan = models.TextField()
+    business_registration_scan = models.TextField()
+
+    # Status of the request
+    status = models.BooleanField(default=False)
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Foreign Key to User (if the request is associated with a user account)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.brta_certificate_number} ({self.status})"
+
+    #
+    # class Meta:
+    #     verbose_name = "Owner Request"
+    #     verbose_name_plural = "Owner Requests"
