@@ -1,3 +1,4 @@
+import 'package:businga1/loading_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:businga1/main.dart';
 import 'package:businga1/home_screen.dart';
@@ -28,7 +29,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Navigate to HomeScreen after login
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => HomeScreenAdmin(),
+          builder: (context) => LoadingScreen(),
         ),
       );
     });

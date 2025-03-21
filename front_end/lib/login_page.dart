@@ -1,13 +1,15 @@
+import 'package:businga1/owner_register_form.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dart:convert'; // For parsing JSON responses
+import 'dart:convert';
 import 'home_screen.dart';
 import 'home_screen_driver.dart';
 import 'loading_screen.dart';
 import 'globalVariables.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences
+import 'owner_register_form.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-var baseUrl = getIp(); // Dynamically fetch the base URL
+var baseUrl = getIp();
 
 class LoginPage extends StatefulWidget {
   final Function()? onTap;
@@ -18,98 +20,16 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool isPasswordVisible = false;
 
-  // void signUserIn() async {
-  //   // Show loading dialog
-  //   showDialog(
-  //     context: context,
-  //     builder: (context) {
-  //       return const Center(
-  //         child: CircularProgressIndicator(),
-  //       );
-  //     },
-  //   );
-  //
-  //   // Prepare data for login
-  //   final Map<String, String> loginData = {
-  //     'username': emailController.text,
-  //     'password': passwordController.text,
-  //   };
-  //
-  //   try {
-  //     final response = await http.post(
-  //       Uri.parse('$baseUrl/users/login/'),
-  //       headers: {'Content-Type': 'application/json'},
-  //       body: json.encode(loginData),
-  //     );
-  //
-  //     // Debugging: Check the status code and response body
-  //     print('Response Status Code: ${response.statusCode}');
-  //     print('Response Body: ${response.body}');
-  //
-  //     if (response.statusCode == 200) {
-  //       // Parse the response body
-  //       final responseBody = json.decode(response.body);
-  //       final String accessToken = responseBody['access'];
-  //       final String role = responseBody['role'];  // Get the role from the response
-  //
-  //       // Debugging: Check role and accessToken values
-  //       print('Access Token: $accessToken');
-  //       print('Role: $role');
-  //
-  //       // Store JWT token in SharedPreferences
-  //       SharedPreferences prefs = await SharedPreferences.getInstance();
-  //       await prefs.setString('access_token', accessToken);
-  //
-  //       // Close the loading dialog
-  //       Navigator.pop(context);
-  //
-  //       // Redirect to different screens based on the role
-  //       if (role == 'driver') {
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => DriverHomeScreen()),  // Redirect to driver screen
-  //         );
-  //       } else if (role == 'passenger') {
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => HomeScreen()),  // Redirect to passenger screen
-  //         );
-  //       } else {
-  //         Navigator.pushReplacement(
-  //           context,
-  //           MaterialPageRoute(builder: (context) => HomeScreen()),  // Default home screen
-  //         );
-  //       }
-  //     } else {
-  //       Navigator.pop(context);
-  //       final error = json.decode(response.body)['error'];
-  //       wrongEmailMessage(error ?? 'An error occurred. Please try again.');
-  //     }
-  //   } catch (e) {
-  //     Navigator.pop(context);
-  //     print('Error: $e');  // Debugging line to log the error
-  //     wrongEmailMessage('An error occurred. Please try again.');
-  //   }
-  // }
-
-
-  // sign user in method
   void signUserIn() async {
-    // Show loading dialog
     showDialog(
       context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    // Prepare data for login
     final Map<String, String> loginData = {
       'username': emailController.text,
       'password': passwordController.text,
@@ -122,39 +42,37 @@ class _LoginPageState extends State<LoginPage> {
         body: json.encode(loginData),
       );
 
+      Navigator.pop(context);
+
       if (response.statusCode == 200) {
-        // Parse the JWT token from the response
         final responseBody = json.decode(response.body);
         final String accessToken = responseBody['access'];
 
-        // Store JWT token in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', accessToken);
 
-        Navigator.pop(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => LoadingScreen()),
         );
       } else {
-        Navigator.pop(context);
         final error = json.decode(response.body)['error'];
-        wrongEmailMessage(error ?? 'An error occurred. Please try again.');
+        showErrorDialog(error ?? 'An error occurred. Please try again.');
       }
     } catch (e) {
       Navigator.pop(context);
-      wrongEmailMessage('An error occurred. Please try again.');
+      showErrorDialog('An error occurred. Please try again.');
     }
   }
 
-  void wrongEmailMessage(String m1) {
+  void showErrorDialog(String message) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: Colors.redAccent,
           title: Text(
-            m1,
+            message,
             style: const TextStyle(color: Colors.white),
           ),
         );
@@ -165,192 +83,206 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(height: 50),
-
-                // Logo
-                const Icon(
-                  Icons.lock,
-                  size: 100,
-                  color: Color(0xFF006B5F), // Deep Sea Green color
-                ),
-
-                const SizedBox(height: 50),
-
-                // Welcome text
-                Text(
-                  'Welcome back',
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 16,
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                // Username textfield
-                Container(
-                  width: 300, // Reduce width of the field
-                  child: TextField(
-                    controller: emailController,
-                    decoration: InputDecoration(
-                      hintText: 'Username',
-                      filled: true,
-                      fillColor: Colors.teal.shade100,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // Password textfield
-                Container(
-                  width: 300, // Reduce width of the field
-                  child: TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      hintText: 'Password',
-                      filled: true,
-                      fillColor: Colors.teal.shade100,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // Forgot password?
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 25),
-
-                // Sign in button
-                GestureDetector(
-                  onTap: signUserIn,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    margin: EdgeInsets.symmetric(horizontal: 25),
-                    decoration: BoxDecoration(
-                      color: Colors.teal.shade700,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Sign In",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                // Or continue with
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          thickness: 0.5,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text(
-                          'Or continue with',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          thickness: 0.5,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                // Google + Apple sign in buttons
-                Row(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF004D40), Color(0xFF002D2A)], // Deep Green → Deep Blue-Green
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Google button
-                    GestureDetector(
-                      onTap: () {}, // You can add the Google sign-in logic here
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        child: Image.asset('lib/images/google.png', width: 50),
-                      ),
-                    ),
+                    const SizedBox(height: 40),
 
-                    const SizedBox(width: 25),
+                    // Bus Icon
+                    Image.asset('lib/images/bussinga.png', width: 200),
 
-                    // Apple button (if you want to add later)
-                    // GestureDetector(
-                    //   onTap: () {},
-                    //   child: Container(
-                    //     padding: EdgeInsets.all(10),
-                    //     child: Image.asset('lib/images/apple.png', width: 50),
+                    const SizedBox(height: 20),
+
+                    // Welcome Back Text
+                    // Text(
+                    //   'Welcome Back!',
+                    //   style: TextStyle(
+                    //     fontSize: 23,
+                    //     fontWeight: FontWeight.bold,
+                    //     color: Colors.white,
+                    //     shadows: [
+                    //       Shadow(
+                    //         blurRadius: 5,
+                    //         color: Colors.black26,
+                    //         offset: Offset(2, 3),
+                    //       ),
+                    //     ],
+                    //     letterSpacing: 1.2,
                     //   ),
                     // ),
+
+                    const SizedBox(height: 30),
+
+                    // Username & Password Fields
+                    _buildTextField(emailController, 'Username', false, Icons.person),
+                    _buildTextField(passwordController, 'Password', true, Icons.visibility),
+
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        "Don't forget password",
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    // Sign In Button
+                    _buildSignInButton(),
+
+                    const SizedBox(height: 20),
+
+                    // Register Section
+                    const Text(
+                      "Not a member?",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 5),
+
+                    _buildRegisterButton(),
+
+                    const SizedBox(height: 15),
+
+                    // Owner Signup Section
+                    const Text(
+                      "Want to join as a company owner?",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 5),
+
+                    _buildOwnerSignupButton(),
+
+                    const SizedBox(height: 30),
                   ],
                 ),
-
-                const SizedBox(height: 50),
-
-                // Not a member? Register now
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Not a member?',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
-                    const SizedBox(width: 4),
-                    GestureDetector(
-                      onTap: widget.onTap, // Navigate to registration page
-                      child: const Text(
-                        'Register now',
-                        style: TextStyle(
-                          color: Color(0xFF006B5F), // Deep Sea Green
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  ],
-                )
-              ],
+              ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField(
+      TextEditingController controller, String label, bool isPassword, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        TextField(
+          controller: controller,
+          obscureText: isPassword ? !isPasswordVisible : false,
+          decoration: InputDecoration(
+            hintText: isPassword ? '••••••••' : 'Enter your $label',
+            hintStyle: TextStyle(color: Colors.white54),
+            suffixIcon: isPassword
+                ? IconButton(
+              icon: Icon(
+                isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                color: Colors.white70,
+              ),
+              onPressed: () {
+                setState(() {
+                  isPasswordVisible = !isPasswordVisible;
+                });
+              },
+            )
+                : Icon(icon, color: Colors.white70),
+            border: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            enabledBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
+            ),
+          ),
+          style: const TextStyle(color: Colors.white),
+        ),
+        const SizedBox(height: 15),
+      ],
+    );
+  }
+
+  Widget _buildSignInButton() {
+    return GestureDetector(
+      onTap: signUserIn,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 15),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.white, width: 2),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: const Center(
+          child: Text(
+            'SIGN IN',
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRegisterButton() {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: const Center(
+          child: Text(
+            'SIGN UP',
+            style: TextStyle(color: Colors.black, fontSize: 15, fontWeight: FontWeight.bold),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOwnerSignupButton() {
+    return GestureDetector(
+        onTap: () {
+          // Navigate to the OwnerSignupScreen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OwnerRegisterForm(),
+            ),
+          );
+        },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 7), // Smaller button
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(35),
+        ),
+        child: const Center(
+          child: Text(
+            'OWNER SIGNUP',
+            style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w200),
           ),
         ),
       ),

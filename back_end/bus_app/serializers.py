@@ -5,7 +5,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from bus_app.models import Stoppage, Profile, OngoingTrip, Bus, Route, BusCompany, DriverProfile, Photo, OnRoute, \
-    RouteStoppage
+    RouteStoppage, OwnerRequest
+
+
+class ObjectDoesNotExist:
+    pass
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -51,6 +55,13 @@ class UserSerializer(serializers.ModelSerializer):
         elif role == 'owner':
             company_name = validated_data.pop('company_name')  # Owners must pass a name
             BusCompany.objects.create(user=user, name=company_name)  # Create company for owner
+
+            try:
+                owner_request = OwnerRequest.objects.get(email_address=user.email)
+                owner_request.status = True  # Set status to True
+                owner_request.save()  # Save the updated status
+            except ObjectDoesNotExist:
+                raise serializers.ValidationError(f"OwnerRequest with email {user.email} does not exist.")
 
         Profile.create_profile(user, role)
         return user
@@ -141,3 +152,13 @@ class OnRouteSerializer(serializers.ModelSerializer):
     class Meta:
         model = OnRoute
         fields = ['id', 'location', 'paused', 'bus_id', 'company_id', 'driver_id' , 'passengers']
+
+class OwnerRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OwnerRequest
+        fields = [
+            'id', 'full_name', 'phone_number', 'email_address', 'residential_address', 'national_id',
+            'business_name', 'business_registration_number', 'tax_identification_number',
+            'brta_certificate_number', 'brta_certificate_scan', 'national_id_scan',
+            'business_registration_scan', 'status', 'created_at', 'updated_at', 'user'
+        ]

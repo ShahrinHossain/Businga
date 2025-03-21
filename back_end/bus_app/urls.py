@@ -7,7 +7,8 @@ from .views import RegisterView, LogoutView, CurrentUserInfoView, \
     AdjustBalanceView, StoppageCreateView, UpdateProfileView, AddOngoingTripView, AddBusView, AddRouteView, \
     AddBusCompanyView, FinishTripView, StoppageListView, AddToBalanceView, GetPhotoView, BusCompanyView, \
     FindNearestStoppage, CurrentTripView, ListLastTrips, AddOnRouteView, CurrentDriverInfoView, DontChooseBusView, \
-    CheckRouteView
+    CheckRouteView, AddOwnerRequestView, FetchPendingOwnerRequestsView, \
+
 
 urlpatterns = [
     path('', views.all_users),
@@ -40,6 +41,8 @@ urlpatterns = [
 
     path('list-trips/', ListLastTrips.as_view(), name='list-trips'),
     path('check-route/', CheckRouteView.as_view(), name='check-route'),
+    path('add-owner-request/', AddOwnerRequestView.as_view(), name='add-owner-request'),
+    path('fetch-owner-request/', FetchPendingOwnerRequestsView.as_view(), name='fetch-owner-request'),
 
     # path('verified-profile/<str:username>/', verified_driver_profile, name='verified_driver_profile'),
 ]

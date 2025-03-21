@@ -25,16 +25,16 @@ from rest_framework import status
 # from django.contrib.sites
 import requests
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
-from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus, OnRoute
+from .models import Profile, Stoppage, OngoingTrip, Trip, BusCompany, Photo, Bus, OnRoute, OwnerRequest
 from .serializers import UserSerializer, UserInfoSerializer, BalanceAdjustmentSerializer, StoppageSerializer, \
     ProfileSerializer, OngoingTripSerializer, BusCompanySerializer, BusSerializer, RouteSerializer, \
-    DriverProfile, PhotoSerializer, DriverProfileSerializer, OnRouteSerializer
+    DriverProfile, PhotoSerializer, DriverProfileSerializer, OnRouteSerializer, OwnerRequestSerializer
 
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.response import Response
@@ -315,6 +315,7 @@ class AddOngoingTripView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 def calculate_fare(distance):
     return max(10.0, distance * 2.45)
 
@@ -514,11 +515,6 @@ class AddBusView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from .models import Route, Stoppage, RouteStoppage
-from .serializers import RouteSerializer
 
 class AddRouteView(APIView):
     permission_classes = []
@@ -965,3 +961,96 @@ class CheckRouteView(APIView):
             {"error": "No valid route found."},
             status=status.HTTP_404_NOT_FOUND,
         )
+
+class DontChooseBusView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure the user is authenticated
+
+    def get(self, request, company_id):
+        # Get all buses that are currently on route for the given company
+        on_route_buses = OnRoute.objects.filter(company_id=company_id).values_list('bus_id', flat=True)
+
+        # Filter buses that are on route
+        buses = Bus.objects.filter(id__in=on_route_buses, company_id=company_id)
+
+        # If no buses found, return an error
+        if not buses.exists():
+            return Response({"error": "No buses on route for the given company."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Serialize the bus data
+        bus_serializer = BusSerializer(buses, many=True)
+
+        return Response(bus_serializer.data, status=status.HTTP_200_OK)
+
+class AddOwnerRequestView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        # Convert files to base64 strings (if provided)
+        data = request.data.copy()
+
+        # Handle BRTA Certificate Scan
+        if 'brta_certificate_scan' in request.FILES:
+            try:
+                brta_certificate_scan = request.FILES['brta_certificate_scan']
+                file_data = brta_certificate_scan.read()
+                data['brta_certificate_scan'] = base64.b64encode(file_data).decode('utf-8')
+            except Exception as e:
+                return Response({"error": f"Error processing BRTA Certificate Scan: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Handle National ID Scan
+        if 'national_id_scan' in request.FILES:
+            try:
+                national_id_scan = request.FILES['national_id_scan']
+                file_data = national_id_scan.read()
+                data['national_id_scan'] = base64.b64encode(file_data).decode('utf-8')
+            except Exception as e:
+                return Response({"error": f"Error processing National ID Scan: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Handle Business Registration Scan
+        if 'business_registration_scan' in request.FILES:
+            try:
+                business_registration_scan = request.FILES['business_registration_scan']
+                file_data = business_registration_scan.read()
+                data['business_registration_scan'] = base64.b64encode(file_data).decode('utf-8')
+            except Exception as e:
+                return Response({"error": f"Error processing Business Registration Scan: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Deserialize the request data using the serializer
+        serializer = OwnerRequestSerializer(data=data)
+
+        if serializer.is_valid():
+            # Save the owner request to the database
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Return errors if the data is invalid
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class FetchPendingOwnerRequestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Fetch all OwnerRequest entries where status is False
+        pending_requests = OwnerRequest.objects.filter(status=False)
+
+        # Serialize the data
+        serializer = OwnerRequestSerializer(pending_requests, many=True)
+        serialized_data = serializer.data
+
+        # Decode the base64-encoded images and re-encode them as base64 strings
+        for entry in serialized_data:
+            try:
+                if entry.get('brta_certificate_scan'):
+                    binary_data = base64.b64decode(entry['brta_certificate_scan'])
+                    entry['brta_certificate_scan'] = base64.b64encode(binary_data).decode('utf-8')
+                if entry.get('national_id_scan'):
+                    binary_data = base64.b64decode(entry['national_id_scan'])
+                    entry['national_id_scan'] = base64.b64encode(binary_data).decode('utf-8')
+                if entry.get('business_registration_scan'):
+                    binary_data = base64.b64decode(entry['business_registration_scan'])
+                    entry['business_registration_scan'] = base64.b64encode(binary_data).decode('utf-8')
+            except Exception as e:
+                return Response({"error": f"Error processing image: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        # Return the response with all fields, including re-encoded base64 strings
+        return Response(serialized_data, status=status.HTTP_200_OK)
